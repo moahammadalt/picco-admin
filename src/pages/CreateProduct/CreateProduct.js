@@ -1,14 +1,29 @@
 import React, { useContext } from 'react';
+import { Form } from 'antd';
+
+import CreateProductForm from './CreateProductForm';
 
 import { StoreContext } from '../../contexts';
+import '../../assets/scss/createProduct.scss';
 
-function CreateProduct() {
+function CreateProduct({ form }) {
 
   const { data } = useContext(StoreContext);
+
+  const handleFormSubmit = values => {
+    console.log('values: ', values);
+  };
   
   return (
-    <div>CreateProduct page</div>
+    <div className="main">
+      <div className="form-wrapper">
+        <CreateProductForm handleFormSubmit={handleFormSubmit}/>
+      </div>
+      <div className="brief-wrapper">
+        sdcsa
+      </div>
+    </div>
   );
 }
 
-export default CreateProduct;
+export default Form.create({ name: 'loginForm' })(CreateProduct);

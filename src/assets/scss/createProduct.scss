@@ -1,0 +1,11 @@
+.main{
+  display: flex;
+
+  .form-wrapper{
+    flex: 2;
+  }
+
+  .brief-wrapper{
+    flex: 1;
+  }
+}

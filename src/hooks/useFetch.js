@@ -51,6 +51,7 @@ export function useFetch(fetchInitialObj) {
             fetchObj.successMessage || 'request has been done successfully.'
           );
       } catch (err) {
+        console.log('err: ', err);
         setError(err);
       } finally {
         setLoading(false);

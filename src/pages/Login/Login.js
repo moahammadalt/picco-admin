@@ -2,11 +2,12 @@ import React from 'react';
 import { Redirect } from 'react-router-dom';
 import store from 'store';
 import { Form, Icon, Input, Button, Layout } from 'antd';
-import '../../assets/scss/login.scss';
 
 import { useFetch } from '../../hooks';
 import { setAuthorizationToken } from '../../utils/API';
 import { URLS } from '../../constants';
+
+import '../../assets/scss/login.scss';
 
 function Login({ form }) {
   const { getFieldDecorator, validateFields } = form;

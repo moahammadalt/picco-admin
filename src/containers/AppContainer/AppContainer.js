@@ -16,17 +16,21 @@ function AppContainer({ history }) {
   const { loading, error, successNotification } = useContext(LayoutContext); 
 
   useEffect(() => {
-    !!error && notification.error({
+    const errorMessage = handleRequestError(error);
+    const isAuthError = errorMessage === 'authentication failed';
+
+    !!error && !isAuthError && notification.error({
       placement: 'bottomRight',
       message: 'An error occured!',
       duration: 3,
-      description: handleRequestError(error),
+      description: errorMessage,
     });
     !!successNotification && notification.success({
       placement: 'bottomRight',
       message: successNotification,
       duration: 3,
     });
+    isAuthError && store.set('authenticationToken', null);
   }, [error, successNotification])
 
   return (
