@@ -28,3 +28,23 @@
 .ant-layout-footer {
   text-align: center;
 }
+
+.header-wrapper{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+
+  .logout-icon{
+    font-size: 25px;
+    cursor: pointer;
+  }
+}
+
+.m-t-30{
+  margin-top: 30px;
+}
+
+.m-t-43{
+  margin-top: 42px;
+}

@@ -1,4 +1,5 @@
-import React, { useReducer, createContext } from 'react';
+import React, { useReducer, createContext, useEffect } from 'react';
+import store from 'store';
 
 import { SET_CATEGORIES, INIT_CATEGORIES, INIT_COLORS, INIT_SIZES, SET_COLORS, SET_SIZES } from '../actions';
 import { categoryReducer, sizeReducer, colorReducer } from '../reducers';
@@ -38,10 +39,30 @@ function StoreProvider({ children }) {
     colorDispatch({ type: INIT_COLORS})
   }
 
-  useFetch({url: URLS.categoryList, onSuccess: setCategories});
-  useFetch({url: URLS.sizeList, onSuccess: setSizes});
-  useFetch({url: URLS.colorList, onSuccess: setColors});
+  const { doFetch: doCategoriesFetchRequest } = useFetch();
+  const { doFetch: doSizesFetchRequest } = useFetch();
+  const { doFetch: doColorsFetchRequest } = useFetch();
   
+  const doCategoriesFetch = () => {
+    doCategoriesFetchRequest({url: URLS.categoryList, onSuccess: setCategories});
+  }
+  const doSizesFetch = () => {
+    doSizesFetchRequest({url: URLS.sizeList, onSuccess: setSizes});
+  }
+  const doColorsFetch = () => {
+    doColorsFetchRequest({url: URLS.colorList, onSuccess: setColors});
+  }
+
+  const authToken = store.get('authenticationToken');
+
+  useEffect(() => {
+    if(authToken) {
+      doCategoriesFetch();
+      doSizesFetch();
+      doColorsFetch();
+    }
+  }, [authToken])
+
   const initialStore = {
     data: {
       ...categoryState,
@@ -54,6 +75,9 @@ function StoreProvider({ children }) {
     initSizes,
     setColors,
     initcolors,
+    doCategoriesFetch,
+    doSizesFetch,
+    doColorsFetch,
   };
   
   return (

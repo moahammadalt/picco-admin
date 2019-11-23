@@ -1,5 +1,14 @@
 import React, { useContext, useState } from 'react';
-import { Form, Input, Button, Row, Col, Select, InputNumber } from 'antd';
+import {
+  Form,
+  Input,
+  Button,
+  Row,
+  Col,
+  Select,
+  InputNumber,
+  Typography
+} from 'antd';
 
 import RichInput from '../../components/RichInput';
 
@@ -7,13 +16,16 @@ import { getParentChildArr } from '../../utils/helpers';
 import { StoreContext } from '../../contexts';
 import '../../assets/scss/createProductForm.scss';
 
+const { Title } = Typography;
+
 function CreateProduct({ form, handleFormSubmit }) {
   const {
-    data: { categoryies = [] }
+    data, data: { categories = [], sizes = [], colors = [] }
   } = useContext(StoreContext);
-  const categories = getParentChildArr(categoryies);
+  const parentCategories = getParentChildArr(categories);
   const [categoryTypes, setCategoryTypes] = useState([]);
   const [categoryTags, setCategoryTags] = useState([]);
+  const [sizeFieldsArr, setSizeFieldArr] = useState([null]);
 
   const { Option } = Select;
   const { getFieldDecorator, validateFields } = form;
@@ -25,10 +37,10 @@ function CreateProduct({ form, handleFormSubmit }) {
   };
 
   const onCategoryChanged = value => {
-    const selectedIndex = categories.findIndex(({ id }) => value === id);
-    setCategoryTypes(categories[selectedIndex].children);
+    const selectedIndex = parentCategories.findIndex(({ id }) => value === id);
+    setCategoryTypes(parentCategories[selectedIndex].children);
     form.setFieldsValue({
-      type: undefined,
+      type: undefined
     });
   };
 
@@ -36,21 +48,37 @@ function CreateProduct({ form, handleFormSubmit }) {
     const selectedIndex = categoryTypes.findIndex(({ id }) => value === id);
     setCategoryTags(categoryTypes[selectedIndex].children);
     form.setFieldsValue({
-      tag: undefined,
+      tag: undefined
     });
   };
 
   const setDescription = value => {
     form.setFieldsValue({
-      description: value,
+      description: value
     });
-  }
+  };
 
   const setDetails = value => {
     form.setFieldsValue({
-      details: value,
+      details: value
     });
-  }
+  };
+
+  const addNewSizeFields = (prevIndex) => {
+    const hasPrevSize = !!form.getFieldValue("sizeOption" + prevIndex);
+    if(!hasPrevSize) {
+      alert('please enter the size before adding a new one.');
+    }
+    else{
+      const tmpArr = [...sizeFieldsArr];
+      tmpArr.push(null);
+      setSizeFieldArr(tmpArr);
+    }
+  };
+
+  const removeSizeFields = (index) => {
+
+  };
 
   return (
     <Row>
@@ -79,7 +107,7 @@ function CreateProduct({ form, handleFormSubmit }) {
                   placeholder="Select a categorty"
                   onChange={onCategoryChanged}
                 >
-                  {categories.map((cat, index) => (
+                  {parentCategories.map((cat, index) => (
                     <Option value={cat.id} key={index}>
                       {cat.name}
                     </Option>
@@ -141,10 +169,7 @@ function CreateProduct({ form, handleFormSubmit }) {
         <Row>
           <Form.Item label="Details">
             {getFieldDecorator('details')(
-              <RichInput
-                placeholder="Details"
-                onChangeHandler={setDetails}
-              />
+              <RichInput placeholder="Details" onChangeHandler={setDetails} />
             )}
           </Form.Item>
         </Row>
@@ -153,12 +178,80 @@ function CreateProduct({ form, handleFormSubmit }) {
             {getFieldDecorator('mainPrice')(
               <InputNumber
                 size="large"
-                defaultValue={1000}
-                formatter={value => `€ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                formatter={value =>
+                  `€ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                }
                 parser={value => value.replace(/\€\s?|(,*)/g, '')}
               />
             )}
           </Form.Item>
+        </Row>
+        <Row>
+          <Row>
+            <Title level={4}>Sizes</Title>
+          </Row>
+          {sizeFieldsArr.map((fileds, i) => (
+            <Row gutter={[5, 0]}>
+              <Col span={3}>
+                <Form.Item label="Size:">
+                  {getFieldDecorator(`sizeOption${i}`)(
+                    <Select placeholder="Select a size">
+                      {sizes.map((size, index) => (
+                        <Option value={size.id} key={index}>
+                          {size.name}
+                        </Option>
+                      ))}
+                    </Select>
+                  )}
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item label="Size detail:">
+                  {getFieldDecorator(`sizeDetail${i}`)(<Input />)}
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item label="Size Price:">
+                  {getFieldDecorator(`sizePrice${i}`)(
+                    <InputNumber
+                      formatter={value =>
+                        `€ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                      }
+                      parser={value => value.replace(/\€\s?|(,*)/g, '')}
+                    />
+                  )}
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item label="Height:">
+                  {getFieldDecorator(`sizeHeight${i}`)(<InputNumber />)}
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item label="Chest:">
+                  {getFieldDecorator(`sizeChest${i}`)(<InputNumber />)}
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item label="Waist:">
+                  {getFieldDecorator(`sizeWaist${i}`)(<InputNumber />)}
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                <Form.Item label="Hips:">
+                  {getFieldDecorator(`sizeHips${i}`)(<InputNumber />)}
+                </Form.Item>
+              </Col>
+              <Col span={3}>
+                {i !== sizeFieldsArr.length - 1 ? (
+                  <Button className="m-t-43" type="dashed" icon="minus" onClick={() => removeSizeFields(i)}/>
+                ) : (
+                  <Button className="m-t-43" type="dashed" icon="plus" onClick={() => addNewSizeFields(i)} />
+                )}
+              </Col>
+              <Col span={3}></Col>
+            </Row>
+          ))}
         </Row>
         {/* <Row>
         <Form.Item>
@@ -172,7 +265,7 @@ function CreateProduct({ form, handleFormSubmit }) {
           )}
         </Form.Item>
       </Row> */}
-        <Row>
+        <Row className="m-t-30">
           <Form.Item>
             <Button type="primary" htmlType="submit" size="large">
               Save

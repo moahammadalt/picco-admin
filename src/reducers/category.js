@@ -5,9 +5,9 @@ export const categoryInitialState = [];
 export const categoryReducer = (state, action) => {
   switch (action.type) {
     case SET_CATEGORIES:
-      return { categoryies: action.payload };
+      return { categories: action.payload };
     case INIT_CATEGORIES:
-      return { categoryies: categoryInitialState };
+      return { categories: categoryInitialState };
     default:
       throw new Error('Unexpected action');
   }

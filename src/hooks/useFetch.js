@@ -15,7 +15,6 @@ export function useFetch(fetchInitialObj) {
   } = useContext(LayoutContext);
   
   useEffect(() => {
-
     const fetchData = async () => {
       setError(null);
       fetchObj.showSuccessNotification && setSuccessNotification(false);

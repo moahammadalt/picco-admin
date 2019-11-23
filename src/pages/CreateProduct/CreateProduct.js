@@ -8,8 +8,6 @@ import '../../assets/scss/createProduct.scss';
 
 function CreateProduct({ form }) {
 
-  const { data } = useContext(StoreContext);
-
   const handleFormSubmit = values => {
     console.log('values: ', values);
   };
