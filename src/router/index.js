@@ -9,7 +9,7 @@ export const dashboardRoutes = [
   {
     path: '/',
     component: Home,
-    name: "Home",
+    name: "Products",
     icon: "shop",
     showAlways: true,
   },

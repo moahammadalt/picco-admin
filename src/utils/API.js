@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseURL = `${
+export const baseURL = `${
   window.location.hostname === 'localhost'
     ? 'http://localhost:1000'
     : window.location.origin

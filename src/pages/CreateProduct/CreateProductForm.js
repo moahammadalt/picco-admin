@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   Form,
   Input,
@@ -7,28 +7,68 @@ import {
   Col,
   Select,
   InputNumber,
-  Typography
+  Typography,
+  notification,
+  Upload,
+  Icon,
+  Divider,
+  Switch,
+  Modal
 } from 'antd';
 
 import RichInput from '../../components/RichInput';
 
 import { getParentChildArr } from '../../utils/helpers';
 import { StoreContext } from '../../contexts';
+import { URLS } from '../../constants';
+import { useFetch, usePrevious } from '../../hooks';
+import { baseURL } from '../../utils/API';
 import '../../assets/scss/createProductForm.scss';
 
 const { Title } = Typography;
+const { Option } = Select;
 
 function CreateProduct({ form, handleFormSubmit }) {
   const {
-    data, data: { categories = [], sizes = [], colors = [] }
+    getFieldDecorator,
+    validateFields,
+    setFieldsValue,
+    getFieldValue,
+    getFieldsValue
+  } = form;
+  const {
+    data,
+    data: { categories = [], sizes = [], colors = [] }
   } = useContext(StoreContext);
   const parentCategories = getParentChildArr(categories);
   const [categoryTypes, setCategoryTypes] = useState([]);
   const [categoryTags, setCategoryTags] = useState([]);
-  const [sizeFieldsArr, setSizeFieldArr] = useState([null]);
+  const [sizeFieldsCountArr, setSizeFieldsCountArr] = useState([0]);
+  const [colorFieldsCountArr, setColorFieldsCountArr] = useState([0]);
+  const [imagesListObj, setImagesListObj] = useState({ 0: [] });
+  const [uploadedFieldIndex, setUploadedFieldIndex] = useState(null);
 
-  const { Option } = Select;
-  const { getFieldDecorator, validateFields } = form;
+  const { doFetch: doImageUpload, data: imageResponse } = useFetch();
+  const prevImageResponse = usePrevious(imageResponse) || {};
+
+  useEffect(() => {
+    let imagesListObjTmp = { ...imagesListObj };
+
+    if (
+      imageResponse.image_name !== prevImageResponse.image_name &&
+      uploadedFieldIndex !== null
+    ) {
+      imagesListObjTmp[uploadedFieldIndex].push({
+        uid: imageResponse.image_name,
+        thumbUrl: baseURL + imageResponse.image_link,
+        name: imageResponse.image_name
+      });
+      setImagesListObj(imagesListObjTmp);
+      setFieldsValue({
+        [`colorImages${uploadedFieldIndex}`]: imagesListObjTmp[uploadedFieldIndex]
+      });
+    }
+  }, [imageResponse, uploadedFieldIndex]);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -39,7 +79,7 @@ function CreateProduct({ form, handleFormSubmit }) {
   const onCategoryChanged = value => {
     const selectedIndex = parentCategories.findIndex(({ id }) => value === id);
     setCategoryTypes(parentCategories[selectedIndex].children);
-    form.setFieldsValue({
+    setFieldsValue({
       type: undefined
     });
   };
@@ -47,37 +87,108 @@ function CreateProduct({ form, handleFormSubmit }) {
   const onCategoryTypeChanged = value => {
     const selectedIndex = categoryTypes.findIndex(({ id }) => value === id);
     setCategoryTags(categoryTypes[selectedIndex].children);
-    form.setFieldsValue({
+    setFieldsValue({
       tag: undefined
     });
   };
 
   const setDescription = value => {
-    form.setFieldsValue({
+    setFieldsValue({
       description: value
     });
   };
 
   const setDetails = value => {
-    form.setFieldsValue({
+    setFieldsValue({
       details: value
     });
   };
 
-  const addNewSizeFields = (prevIndex) => {
-    const hasPrevSize = !!form.getFieldValue("sizeOption" + prevIndex);
-    if(!hasPrevSize) {
-      alert('please enter the size before adding a new one.');
-    }
-    else{
-      const tmpArr = [...sizeFieldsArr];
-      tmpArr.push(null);
-      setSizeFieldArr(tmpArr);
+  const showWarningNotification = msg => {
+    notification.warning({
+      placement: 'bottomRight',
+      message: 'An error occured!',
+      duration: 4,
+      description: msg
+    });
+  };
+
+  const addNewSizeFields = prevIndex => {
+    const hasPrevSize = !!getFieldValue('sizeOption' + prevIndex);
+    if (!hasPrevSize) {
+      showWarningNotification('please enter the size before adding a new one.');
+    } else {
+      const tmpArr = [...sizeFieldsCountArr];
+      tmpArr.push(tmpArr[tmpArr.length - 1] + 1);
+      setSizeFieldsCountArr(tmpArr);
     }
   };
 
-  const removeSizeFields = (index) => {
+  const removeSizeFields = index => {
+    const tmpArr = [...sizeFieldsCountArr];
+    tmpArr.splice(index, 1);
+    setSizeFieldsCountArr(tmpArr);
+  };
 
+  const addNewColorFields = prevIndex => {
+    const hasPrevColor = !!getFieldValue('colorOption' + prevIndex);
+    if (!hasPrevColor) {
+      showWarningNotification(
+        'please enter the color before adding a new one.'
+      );
+    } else {
+      const tmpArr = [...colorFieldsCountArr];
+      const lastFiledValue = tmpArr[tmpArr.length - 1];
+      tmpArr.push(lastFiledValue + 1);
+      setColorFieldsCountArr(tmpArr);
+      setImagesListObj({
+        ...imagesListObj,
+        [lastFiledValue + 1]: []
+      });
+    }
+  };
+
+  const removeColorFields = (index, fieldIndex) => {
+    const tmpArr = [...colorFieldsCountArr];
+    tmpArr.splice(index, 1);
+    setColorFieldsCountArr(tmpArr);
+
+    const tmpImagesListObj = imagesListObj;
+    delete tmpImagesListObj[fieldIndex];
+    setImagesListObj(tmpImagesListObj);
+  };
+
+  const uploadImage = (file, fieldIndex) => {
+    setUploadedFieldIndex(fieldIndex);
+    doImageUpload({
+      method: 'FILE_POST',
+      params: { product_image: file },
+      url: URLS.imageUpload,
+      showSuccessNotification: true,
+      successMessage: 'Image uploaded successfully.'
+    });
+  };
+
+  const handleImageUploadRemove = (fileData, fileIndex) => {
+    const tmpImagesListObj = { ...imagesListObj };
+    const findSelectedImageIndex = imagesListObj[fileIndex].findIndex(
+      ({ uid }) => fileData.uid === uid
+    );
+    tmpImagesListObj[fileIndex].splice(findSelectedImageIndex, 1);
+    setImagesListObj(tmpImagesListObj);
+  };
+
+  const handleDefaultColorChange = (value, fieldIndex) => {
+    Object.keys(getFieldsValue()).forEach(fieldName => {
+      if (
+        fieldName.startsWith('colorDefault') &&
+        fieldIndex != fieldName[fieldName.length - 1]
+      ) {
+        setFieldsValue({
+          [fieldName]: false
+        });
+      }
+    });
   };
 
   return (
@@ -95,6 +206,7 @@ function CreateProduct({ form, handleFormSubmit }) {
           </Col>
           <Col span={12} />
         </Row>
+        <Divider />
         <Row gutter={[20, 0]}>
           <Col span={8}>
             <Form.Item label="Category">
@@ -121,7 +233,7 @@ function CreateProduct({ form, handleFormSubmit }) {
               <Form.Item label="Type">
                 {getFieldDecorator('type', {
                   rules: [
-                    { required: false, message: 'Please select the type!' }
+                    { required: true, message: 'Please select the type!' }
                   ]
                 })(
                   <Select
@@ -156,6 +268,7 @@ function CreateProduct({ form, handleFormSubmit }) {
             )}
           </Col>
         </Row>
+        <Divider />
         <Row>
           <Form.Item label="Description">
             {getFieldDecorator('description')(
@@ -166,6 +279,7 @@ function CreateProduct({ form, handleFormSubmit }) {
             )}
           </Form.Item>
         </Row>
+        <Divider />
         <Row>
           <Form.Item label="Details">
             {getFieldDecorator('details')(
@@ -173,6 +287,7 @@ function CreateProduct({ form, handleFormSubmit }) {
             )}
           </Form.Item>
         </Row>
+        <Divider />
         <Row>
           <Form.Item label="Main Price">
             {getFieldDecorator('mainPrice')(
@@ -186,71 +301,200 @@ function CreateProduct({ form, handleFormSubmit }) {
             )}
           </Form.Item>
         </Row>
+        <Divider />
+        <Row>
+          <Form.Item label="Is Best Product:">
+            {getFieldDecorator('isBest')(
+              <Switch />
+            )}
+          </Form.Item>
+        </Row>
+        <Divider />
+        <Row>
+          <Form.Item label="Is Handmade Product:">
+            {getFieldDecorator('isHandmade')(
+              <Switch />
+            )}
+          </Form.Item>
+        </Row>
+        <Divider />
         <Row>
           <Row>
             <Title level={4}>Sizes</Title>
           </Row>
-          {sizeFieldsArr.map((fileds, i) => (
-            <Row gutter={[5, 0]}>
-              <Col span={3}>
-                <Form.Item label="Size:">
-                  {getFieldDecorator(`sizeOption${i}`)(
-                    <Select placeholder="Select a size">
-                      {sizes.map((size, index) => (
-                        <Option value={size.id} key={index}>
-                          {size.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  )}
-                </Form.Item>
-              </Col>
-              <Col span={3}>
-                <Form.Item label="Size detail:">
-                  {getFieldDecorator(`sizeDetail${i}`)(<Input />)}
-                </Form.Item>
-              </Col>
-              <Col span={3}>
-                <Form.Item label="Size Price:">
-                  {getFieldDecorator(`sizePrice${i}`)(
-                    <InputNumber
-                      formatter={value =>
-                        `€ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-                      }
-                      parser={value => value.replace(/\€\s?|(,*)/g, '')}
+          {sizeFieldsCountArr.map((fieldIndex, i) => (
+            <>
+              <Row gutter={[5, 0]} key={fieldIndex}>
+                <Col span={3}>
+                  <Form.Item label="Size:">
+                    {getFieldDecorator(`sizeOption${fieldIndex}`)(
+                      <Select placeholder="Select a size">
+                        {sizes.map((size, index) => (
+                          <Option value={size.id} key={index}>
+                            {size.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    )}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Size detail:">
+                    {getFieldDecorator(`sizeDetail${fieldIndex}`)(<Input />)}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Size Price:">
+                    {getFieldDecorator(`sizePrice${fieldIndex}`)(
+                      <InputNumber
+                        formatter={value =>
+                          `€ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                        }
+                        parser={value => value.replace(/\€\s?|(,*)/g, '')}
+                      />
+                    )}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Height:">
+                    {getFieldDecorator(`sizeHeight${fieldIndex}`)(
+                      <InputNumber />
+                    )}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Chest:">
+                    {getFieldDecorator(`sizeChest${fieldIndex}`)(
+                      <InputNumber />
+                    )}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Waist:">
+                    {getFieldDecorator(`sizeWaist${fieldIndex}`)(
+                      <InputNumber />
+                    )}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Hips:">
+                    {getFieldDecorator(`sizeHips${fieldIndex}`)(
+                      <InputNumber />
+                    )}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  {sizeFieldsCountArr.length !== 1 && (
+                    <Button
+                      className="m-t-43 m-r-5"
+                      type="dashed"
+                      icon="minus"
+                      onClick={() => removeSizeFields(i)}
                     />
                   )}
-                </Form.Item>
-              </Col>
-              <Col span={3}>
-                <Form.Item label="Height:">
-                  {getFieldDecorator(`sizeHeight${i}`)(<InputNumber />)}
-                </Form.Item>
-              </Col>
-              <Col span={3}>
-                <Form.Item label="Chest:">
-                  {getFieldDecorator(`sizeChest${i}`)(<InputNumber />)}
-                </Form.Item>
-              </Col>
-              <Col span={3}>
-                <Form.Item label="Waist:">
-                  {getFieldDecorator(`sizeWaist${i}`)(<InputNumber />)}
-                </Form.Item>
-              </Col>
-              <Col span={3}>
-                <Form.Item label="Hips:">
-                  {getFieldDecorator(`sizeHips${i}`)(<InputNumber />)}
-                </Form.Item>
-              </Col>
-              <Col span={3}>
-                {i !== sizeFieldsArr.length - 1 ? (
-                  <Button className="m-t-43" type="dashed" icon="minus" onClick={() => removeSizeFields(i)}/>
-                ) : (
-                  <Button className="m-t-43" type="dashed" icon="plus" onClick={() => addNewSizeFields(i)} />
-                )}
-              </Col>
-              <Col span={3}></Col>
-            </Row>
+                  {i === sizeFieldsCountArr.length - 1 && (
+                    <Button
+                      className="m-t-43"
+                      type="dashed"
+                      icon="plus"
+                      onClick={() => addNewSizeFields(fieldIndex)}
+                    />
+                  )}
+                </Col>
+                <Col span={3}></Col>
+              </Row>
+              {sizeFieldsCountArr.length !== 1 &&
+                i !== sizeFieldsCountArr.length - 1 && <Divider dashed />}
+            </>
+          ))}
+        </Row>
+        <Divider />
+        <Row>
+          <Row>
+            <Title level={4}>Colors & Images</Title>
+          </Row>
+          {colorFieldsCountArr.map((fieldIndex, i) => (
+            <>
+              <Row gutter={[10, 0]} key={fieldIndex}>
+                <Col span={4}>
+                  <Form.Item label={`Color: ${fieldIndex} index: ${i}`}>
+                    {getFieldDecorator(`colorOption${fieldIndex}`)(
+                      <Select placeholder="Select a color">
+                        {colors.map((color, index) => (
+                          <Option value={color.id} key={index}>
+                            {color.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    )}
+                  </Form.Item>
+                </Col>
+                <Col span={4}>
+                  <Form.Item label="Color code:">
+                    {getFieldDecorator(`colorCode${fieldIndex}`)(<Input />)}
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label="Color Images:"
+                    className="product-image-upload"
+                  >
+                    {getFieldDecorator(`colorImages${fieldIndex}`)(
+                      <Upload
+                        listType="picture-card"
+                        fileList={imagesListObj[fieldIndex]}
+                        customRequest={({ file }) =>
+                          uploadImage(file, fieldIndex)
+                        }
+                        onRemove={file =>
+                          handleImageUploadRemove(file, fieldIndex)
+                        }
+                      >
+                        {imagesListObj[fieldIndex] &&
+                        imagesListObj[fieldIndex].length >= 8 ? null : (
+                          <>
+                            <Icon type="plus" />
+                            <div className="ant-upload-text">Upload</div>
+                          </>
+                        )}
+                      </Upload>
+                    )}
+                  </Form.Item>
+                </Col>
+                <Col span={4}>
+                  <Form.Item label="Set Default Color:">
+                    {getFieldDecorator(`colorDefault${fieldIndex}`)(
+                      <Switch
+                        checked={getFieldValue(`colorDefault${fieldIndex}`)}
+                        onChange={value =>
+                          handleDefaultColorChange(value, fieldIndex)
+                        }
+                      />
+                    )}
+                  </Form.Item>
+                </Col>
+                <Col span={4}>
+                  {colorFieldsCountArr.length !== 1 && (
+                    <Button
+                      className="m-t-43 m-r-5"
+                      type="dashed"
+                      icon="minus"
+                      onClick={() => removeColorFields(i, fieldIndex)}
+                    />
+                  )}
+                  {i === colorFieldsCountArr.length - 1 && (
+                    <Button
+                      className="m-t-43"
+                      type="dashed"
+                      icon="plus"
+                      onClick={() => addNewColorFields(fieldIndex)}
+                    />
+                  )}
+                </Col>
+              </Row>
+              {colorFieldsCountArr.length !== 1 &&
+                i !== colorFieldsCountArr.length - 1 && <Divider dashed />}
+            </>
           ))}
         </Row>
         {/* <Row>
@@ -273,6 +517,9 @@ function CreateProduct({ form, handleFormSubmit }) {
           </Form.Item>
         </Row>
       </Form>
+      {/* <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
+        <img alt="example" style={{ width: '100%' }} src={previewImage} />
+      </Modal> */}
     </Row>
   );
 }

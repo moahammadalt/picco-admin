@@ -22,4 +22,10 @@
     margin-top: 0.5em;
     font-size: small;
   }
+
+  .product-image-upload{
+    img {
+      height: -webkit-fill-available !important;
+    }
+  }
 }

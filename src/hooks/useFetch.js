@@ -3,7 +3,7 @@ import { LayoutContext } from '../contexts';
 
 import { API, extractDataObject } from '../utils/API';
 
-export function useFetch(fetchInitialObj) {
+function useFetch(fetchInitialObj) {
   const [data, setData] = useState(null);
   const [fetchObj, doFetch] = useState(fetchInitialObj);
   const {
@@ -31,7 +31,15 @@ export function useFetch(fetchInitialObj) {
             break;
   
           case 'FILE_POST':
-            res = await API.post(fetchObj.url, fetchObj.params);
+            var formData = new FormData();
+            for(const key in fetchObj.params) {
+              formData.append(key, fetchObj.params[key]);
+            }
+            res = await API.post(fetchObj.url, formData, {
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              }
+            });
             break;
   
           default:
@@ -69,3 +77,5 @@ export function useFetch(fetchInitialObj) {
     doFetch,
   };
 }
+
+export default useFetch;
