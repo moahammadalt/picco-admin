@@ -37,7 +37,6 @@ function CreateProduct({ form, handleFormSubmit }) {
     getFieldsValue
   } = form;
   const {
-    data,
     data: { categories = [], sizes = [], colors = [] }
   } = useContext(StoreContext);
   const parentCategories = getParentChildArr(categories);
@@ -46,29 +45,8 @@ function CreateProduct({ form, handleFormSubmit }) {
   const [sizeFieldsCountArr, setSizeFieldsCountArr] = useState([0]);
   const [colorFieldsCountArr, setColorFieldsCountArr] = useState([0]);
   const [imagesListObj, setImagesListObj] = useState({ 0: [] });
-  const [uploadedFieldIndex, setUploadedFieldIndex] = useState(null);
 
-  const { doFetch: doImageUpload, data: imageResponse } = useFetch();
-  const prevImageResponse = usePrevious(imageResponse) || {};
-
-  useEffect(() => {
-    let imagesListObjTmp = { ...imagesListObj };
-
-    if (
-      imageResponse.image_name !== prevImageResponse.image_name &&
-      uploadedFieldIndex !== null
-    ) {
-      imagesListObjTmp[uploadedFieldIndex].push({
-        uid: imageResponse.image_name,
-        thumbUrl: baseURL + imageResponse.image_link,
-        name: imageResponse.image_name
-      });
-      setImagesListObj(imagesListObjTmp);
-      setFieldsValue({
-        [`colorImages${uploadedFieldIndex}`]: imagesListObjTmp[uploadedFieldIndex]
-      });
-    }
-  }, [imageResponse, uploadedFieldIndex]);
+  const { doFetch: doImageUpload } = useFetch();
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -159,13 +137,25 @@ function CreateProduct({ form, handleFormSubmit }) {
   };
 
   const uploadImage = (file, fieldIndex) => {
-    setUploadedFieldIndex(fieldIndex);
     doImageUpload({
       method: 'FILE_POST',
       params: { product_image: file },
       url: URLS.imageUpload,
       showSuccessNotification: true,
-      successMessage: 'Image uploaded successfully.'
+      successMessage: 'Image uploaded successfully.',
+      onSuccess: (imageResponse) => {
+        let imagesListObjTmp = { ...imagesListObj };
+
+        imagesListObjTmp[fieldIndex].push({
+          uid: imageResponse.image_name,
+          thumbUrl: baseURL + imageResponse.image_link,
+          name: imageResponse.image_name
+        });
+        setImagesListObj(imagesListObjTmp);
+        setFieldsValue({
+          [`colorImages${fieldIndex}`]: imagesListObjTmp[fieldIndex]
+        });
+      }
     });
   };
 
