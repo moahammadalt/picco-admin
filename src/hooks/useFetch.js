@@ -52,6 +52,7 @@ function useFetch(fetchInitialObj) {
         setData(res);
         
         !!fetchObj.onSuccess && fetchObj.onSuccess(extractDataObject(res));
+        !!fetchInitialObj && fetchInitialObj.onSuccess && fetchInitialObj.onSuccess(extractDataObject(res));
 
         fetchObj.showSuccessNotification &&
           setSuccessNotification(

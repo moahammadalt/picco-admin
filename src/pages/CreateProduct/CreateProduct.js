@@ -18,15 +18,7 @@ function CreateProduct() {
   const { doFetch: doProductCreateFetch, data: productCreateData } = useFetch();
   const [productCreated, setProductCreated] = useState(false);
 
-  useEffect(() => {
-    if(!!productCreateData.id) {
-      setProductCreated(true);
-    }
-
-  }, [productCreateData]);
-
   const handleFormSubmit = values => {
-
     const productObj = {
       name: values.name,
       slug: extractSlug(values.name),
@@ -46,6 +38,7 @@ function CreateProduct() {
     doProductCreateFetch({
       url: URLS.productCreate,
       params: productObj,
+      onSuccess: data => !!data.id && setProductCreated(true)
     });
   };
 
