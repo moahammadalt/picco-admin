@@ -56,7 +56,7 @@ function AppContainer({ history }) {
   return (
     <Fragment>
       <Spin spinning={loading}>
-        <Router history={history}>
+        <Router history={history} basename="/admin-dashboard">
           <Switch>
             {baseRoutes.map(route => (
               <Route
