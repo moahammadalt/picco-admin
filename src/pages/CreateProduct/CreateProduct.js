@@ -30,6 +30,7 @@ function CreateProduct() {
       currency: 'EUR',
       is_best: values.isBest ? '1' : '0',
       is_handmade: values.isHandmade ? '1' : '0',
+      stock_status: values.isOutOfStuck ? '0' : '1',
       default_color_id: extractDefaultColorId(values),
       sizes: extractSizesArr(values),
       colors: extractColorsArr(values)

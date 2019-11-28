@@ -40,7 +40,7 @@ export const extractColorsArr = values => {
       amount: values[`colorAmount${colorIndex}`]
     };
   });
-  return (!colorsArr[0].id ? [] : colorsArr);
+  return (!colorsArr[0].id ? [] : colorsArr.reverse());
 };
 
 export const extractDefaultColorId = (values) => {

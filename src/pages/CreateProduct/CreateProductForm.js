@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   Form,
   Input,
@@ -6,14 +6,12 @@ import {
   Row,
   Col,
   Select,
-  InputNumber,
   Typography,
   notification,
   Upload,
   Icon,
   Divider,
   Switch,
-  Modal
 } from 'antd';
 
 import RichInput from '../../components/RichInput';
@@ -279,15 +277,9 @@ function CreateProduct({ form, handleFormSubmit }) {
         </Row>
         <Divider />
         <Row>
-          <Form.Item label="Main Price">
+          <Form.Item label="Main Price" className="price-input">
             {getFieldDecorator('mainPrice')(
-              <InputNumber
-                size="large"
-                formatter={value =>
-                  `€ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-                }
-                parser={value => value.replace(/\€\s?|(,*)/g, '')}
-              />
+              <Input size="large" />
             )}
           </Form.Item>
         </Row>
@@ -303,6 +295,14 @@ function CreateProduct({ form, handleFormSubmit }) {
         <Row>
           <Form.Item label="Is Handmade Product:">
             {getFieldDecorator('isHandmade')(
+              <Switch />
+            )}
+          </Form.Item>
+        </Row>
+        <Divider />
+        <Row>
+          <Form.Item label="Is Product Out Of Stock:">
+            {getFieldDecorator('isOutOfStuck')(
               <Switch />
             )}
           </Form.Item>
@@ -336,40 +336,35 @@ function CreateProduct({ form, handleFormSubmit }) {
                 <Col span={3}>
                   <Form.Item label="Size Price:">
                     {getFieldDecorator(`sizePrice${fieldIndex}`)(
-                      <InputNumber
-                        formatter={value =>
-                          `€ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-                        }
-                        parser={value => value.replace(/\€\s?|(,*)/g, '')}
-                      />
+                      <Input />
                     )}
                   </Form.Item>
                 </Col>
                 <Col span={3}>
                   <Form.Item label="Height:">
                     {getFieldDecorator(`sizeHeight${fieldIndex}`)(
-                      <InputNumber />
+                      <Input />
                     )}
                   </Form.Item>
                 </Col>
                 <Col span={3}>
                   <Form.Item label="Chest:">
                     {getFieldDecorator(`sizeChest${fieldIndex}`)(
-                      <InputNumber />
+                      <Input />
                     )}
                   </Form.Item>
                 </Col>
                 <Col span={3}>
                   <Form.Item label="Waist:">
                     {getFieldDecorator(`sizeWaist${fieldIndex}`)(
-                      <InputNumber />
+                      <Input />
                     )}
                   </Form.Item>
                 </Col>
                 <Col span={3}>
                   <Form.Item label="Hips:">
                     {getFieldDecorator(`sizeHips${fieldIndex}`)(
-                      <InputNumber />
+                      <Input />
                     )}
                   </Form.Item>
                 </Col>

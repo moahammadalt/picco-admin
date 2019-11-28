@@ -17,7 +17,7 @@ function useFetch(fetchInitialObj) {
   useEffect(() => {
     const fetchData = async () => {
       setError(null);
-      fetchObj.showSuccessNotification && setSuccessNotification(false);
+      setSuccessNotification(false);
       try {
         setLoading(true);
         let res = null;
