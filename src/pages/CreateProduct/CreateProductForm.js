@@ -18,7 +18,7 @@ import RichInput from '../../components/RichInput';
 
 import { getParentChildArr } from '../../utils/helpers';
 import { StoreContext } from '../../contexts';
-import { URLS } from '../../constants';
+import { URLS, FIRST_INDEX, LAST_INDEX, } from '../../constants';
 import { useFetch, usePrevious } from '../../hooks';
 import { baseURL } from '../../utils/API';
 import '../../assets/scss/createProductForm.scss';
@@ -26,7 +26,7 @@ import '../../assets/scss/createProductForm.scss';
 const { Title } = Typography;
 const { Option } = Select;
 
-function CreateProduct({ form, handleFormSubmit }) {
+function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
   const {
     getFieldDecorator,
     validateFields,
@@ -306,6 +306,31 @@ function CreateProduct({ form, handleFormSubmit }) {
               <Switch />
             )}
           </Form.Item>
+        </Row>
+        <Divider />
+        <Row>
+          <Col span={8}>
+            <Form.Item label="Product Place:">
+              {getFieldDecorator('sortPlace', {initialValue: LAST_INDEX })(
+                <Select
+                  showSearch
+                  placeholder="Select a product"
+                  optionFilterProp="children"
+                  defaultValue={LAST_INDEX}
+                  filterOption={(input, option) =>
+                    option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                  }
+                >
+                  <Option value={FIRST_INDEX} style={{color: '#7bb3b3'}}>At First</Option>
+                  <Option value={LAST_INDEX} style={{color: '#7bb3b3'}}>At Last</Option>
+                  {productsList.map(({id, name}) => (
+                    <Option key={id} value={id}>Before: {name}</Option>
+                  ))}                  
+                  
+                </Select>
+              )}
+            </Form.Item>
+          </Col>
         </Row>
         <Divider />
         <Row>

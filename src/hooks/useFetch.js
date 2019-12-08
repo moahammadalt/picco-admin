@@ -71,8 +71,10 @@ function useFetch(fetchInitialObj) {
     doFetch(null);
   }, [ fetchObj ]);
 
+  const defaultResponseValue = (fetchObj && fetchObj.defaultValue) || (fetchInitialObj && fetchInitialObj.defaultValue);
+  
   return {
-    data: extractDataObject(data),
+    data: extractDataObject(data, defaultResponseValue),
     error,
     loading,
     doFetch,

@@ -10,12 +10,17 @@ import {
   extractSlug,
   extractSizesArr,
   extractColorsArr,
-  extractDefaultColorId
+  extractDefaultColorId,
+  extractProductIndex,
 } from '../../utils/productCreate';
 import '../../assets/scss/createProduct.scss';
 
 function CreateProduct() {
-  const { doFetch: doProductCreateFetch, data: productCreateData } = useFetch();
+  const { doFetch: doProductCreateFetch, } = useFetch();
+  const { data: productsList } = useFetch({
+    url: URLS.productListGet,
+    defaultValue: [],
+  });
   const [productCreated, setProductCreated] = useState(false);
 
   const handleFormSubmit = values => {
@@ -32,8 +37,9 @@ function CreateProduct() {
       is_handmade: values.isHandmade ? '1' : '0',
       stock_status: values.isOutOfStuck ? '0' : '1',
       default_color_id: extractDefaultColorId(values),
+      sort_index: extractProductIndex(values, productsList),
       sizes: extractSizesArr(values),
-      colors: extractColorsArr(values)
+      colors: extractColorsArr(values),
     };
 
     doProductCreateFetch({
@@ -47,7 +53,7 @@ function CreateProduct() {
     <div className="main">
       {productCreated && <Redirect to="/" />}
       <div className="form-wrapper">
-        <CreateProductForm handleFormSubmit={handleFormSubmit} />
+        <CreateProductForm handleFormSubmit={handleFormSubmit} productsList={productsList} />
       </div>
       <div className="brief-wrapper hidden">sdcsa</div>
     </div>
