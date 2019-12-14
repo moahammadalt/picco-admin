@@ -8,6 +8,8 @@ const URLS = {
   productCreate: '/product/create',
   productListGet: '/product',
   productDelete: ({ slug }) => `/product/${slug}/delete`,
+  categoryDelete: ({ slug }) => `/category/${slug}/delete`,
+  categoryUpdate: ({ slug }) => `/category/${slug}`,
 }
 
 export default URLS;

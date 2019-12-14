@@ -3,6 +3,7 @@ import MainLayout from '../layout';
 import Login from '../pages/Login';
 import Home from '../pages/Home';
 import CreateProduct from '../pages/CreateProduct';
+import Category from '../pages/Category';
 import ProductDetails from '../pages/ProductDetails';
 
 export const dashboardRoutes = [
@@ -18,6 +19,13 @@ export const dashboardRoutes = [
     component: CreateProduct,
     name: "Create Product",
     icon: "upload",
+    showAlways: true,
+  },
+  {
+    path: '/categories',
+    component: Category,
+    name: "Categories",
+    icon: "menu-unfold",
     showAlways: true,
   },
   {

@@ -42,6 +42,7 @@ export const getParentChildArr = (arr, parentIdKey) => {
     arrElem = arr[i];
     mappedArr[arrElem.id] = arrElem;
     mappedArr[arrElem.id]['children'] = [];
+    mappedArr[arrElem.id]['key'] = arrElem.id;
   }
 
 
