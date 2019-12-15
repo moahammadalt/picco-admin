@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Icon, Row, Col, Avatar, Modal } from 'antd';
-import { useFetch, usePrevious } from '../../hooks';
+import { Link } from 'react-router-dom';
+
+import { useFetch } from '../../hooks';
 import { URLS } from '../../constants';
 
 import { baseURL } from '../../utils/API';
@@ -13,18 +15,8 @@ function Home() {
     url: URLS.productListGet
   });
   const { doFetch: doDeleteFetch, data: deleteResponse } = useFetch();
-  const prevDeleteResponse = usePrevious(deleteResponse) || {};
 
   const [selectedProductToDelete, setSelectedProductToDelete] = useState(null);
-
-  useEffect(() => {
-    if (JSON.stringify(deleteResponse) !== JSON.stringify(prevDeleteResponse)) {
-      doProductsFetch({
-        url: URLS.productListGet
-      });
-      setSelectedProductToDelete(null);
-    }
-  }, [deleteResponse]);
 
   const getProductFirstImage = colors => {
     if (
@@ -54,7 +46,13 @@ function Home() {
   const handleProductDelete = () => {
     doDeleteFetch({
       url: URLS.productDelete({ slug: selectedProductToDelete.slug }),
-      method: 'POST'
+      method: 'POST',
+      onSuccess: (data) => {
+        doProductsFetch({
+          url: URLS.productListGet
+        });
+        setSelectedProductToDelete(null);
+      }
     });
   };
 
@@ -78,7 +76,9 @@ function Home() {
                 <a href={`${baseURL}/${product.slug}`} target="_blank">
                   <Icon type="link" key="link" />
                 </a>,
-                <Icon type="edit" key="edit" />
+                <Link to={`product/${product.slug}`}>
+                  <Icon type="edit" key="edit" />
+                </Link>,
               ]}
             >
               <Meta

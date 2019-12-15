@@ -1,8 +1,18 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Tree, Input, Modal, Row, Icon, notification, Button } from 'antd';
+import {
+  Tree,
+  Input,
+  Modal,
+  Row,
+  Icon,
+  notification,
+  Button,
+  Form,
+  Select
+} from 'antd';
 
 import { StoreContext } from '../../contexts';
-import { getParentChildArr } from '../../utils/helpers';
+import { getParentChildArr, extractSlug } from '../../utils/helpers';
 import { useFetch } from '../../hooks';
 import { URLS } from '../../constants';
 
@@ -10,31 +20,39 @@ import '../../assets/scss/category.scss';
 
 const { TreeNode } = Tree;
 const { Search } = Input;
+const { Option } = Select;
 
-function Category() {
+function Category({ form }) {
+  const {
+    getFieldDecorator,
+    validateFields,
+    setFieldsValue,
+    resetFields
+  } = form;
   const {
     data: { categories = [] },
-    doCategoriesFetch,
+    doCategoriesFetch
   } = useContext(StoreContext);
   const categoriesList = getParentChildArr(categories);
 
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [autoExpandParent, setAutoExpandParent] = useState(true);
   const [createCategoryModalOpen, setCreateCategoryModalOpen] = useState(false);
+  const [categoryTypes, setCategoryTypes] = useState([]);
   const [deleteModalItem, setDeleteModalItem] = useState({});
   const [updateModalItem, setUpdateModalItem] = useState({});
   const [updateModalItemName, setUpdateModalItemName] = useState('');
   const [searchValue, setSearchValue] = useState('');
 
-  const { doFetch: doDeleteFetch} = useFetch();
+  const { doFetch: doDeleteFetch } = useFetch();
   const { doFetch: doUpdateFetch } = useFetch();
+  const { doFetch: doCreateFetch } = useFetch();
 
   useEffect(() => {
-    if(categoriesList && categoriesList.length && expandedKeys.length === 0) {
+    if (categoriesList && categoriesList.length && expandedKeys.length === 0) {
       setExpandedKeys(categoriesList.map(category => category.id));
     }
-    console.log('expandedKeys', expandedKeys);
-  }, [categoriesList])
+  }, [categoriesList]);
 
   const dataList = [];
   const generateList = data => {
@@ -99,22 +117,22 @@ function Category() {
   };
 
   const handleCategoryUpdate = () => {
-    if(!updateModalItemName) {
+    if (!updateModalItemName) {
       notification.warning({
         placement: 'bottomRight',
         message: 'Please fill the category name!',
-        duration: 4,
+        duration: 4
       });
       return;
     }
     doUpdateFetch({
       url: URLS.categoryUpdate({ slug: updateModalItem.slug }),
       params: {
-        name: updateModalItemName,
+        name: updateModalItemName
       },
       method: 'POST',
       showSuccessNotification: true,
-      successMessage: `Category ${deleteModalItem.name} has been updated`,
+      successMessage: `Category ${updateModalItemName} has been updated`,
       onSuccess: data => {
         doCategoriesFetch();
         setUpdateModalItem({});
@@ -123,11 +141,41 @@ function Category() {
     });
   };
 
-  const handleCategoryCreate = () => {
-    console.log('ffff');
-  }
+  const onCategoryChanged = value => {
+    const selectedIndex = categoriesList.findIndex(({ id }) => value === id);
+    setCategoryTypes(categoriesList[selectedIndex].children);
+    setFieldsValue({
+      parentType: undefined
+    });
+  };
 
-  const getUpdateIcon = (item) => (
+  const closeCreateCategoryModal = () => {
+    setCreateCategoryModalOpen(false);
+    setCategoryTypes([]);
+    resetFields();
+  };
+
+  const handleCategoryCreate = async e => {
+    e.preventDefault();
+    const { categoryName, parentCategory, parentType } = await validateFields();
+    doCreateFetch({
+      url: URLS.categoryCreate,
+      params: {
+        name: categoryName,
+        slug: extractSlug(categoryName),
+        parent_id: parentType || parentCategory
+      },
+      method: 'POST',
+      showSuccessNotification: true,
+      successMessage: `Category ${categoryName} has been created`,
+      onSuccess: data => {
+        doCategoriesFetch();
+        closeCreateCategoryModal();
+      }
+    });
+  };
+
+  const getUpdateIcon = item => (
     <Icon
       type="edit"
       onClick={() => {
@@ -140,7 +188,7 @@ function Category() {
     />
   );
 
-  const getDeleteIcon = (item) => (
+  const getDeleteIcon = item => (
     <Icon
       type="delete"
       onClick={() => setDeleteModalItem(item)}
@@ -161,13 +209,13 @@ function Category() {
             <span style={{ color: '#f50' }}>{searchValue}</span>
             {afterStr}
             {getUpdateIcon(item)}
-            {item.children.length === 0 && getDeleteIcon(item)}
+            {getDeleteIcon(item)}
           </h3>
         ) : (
           <h3 className="category-item">
             {item.name}
             {getUpdateIcon(item)}
-            {item.children.length === 0 && getDeleteIcon(item)}
+            {getDeleteIcon(item)}
           </h3>
         );
       if (item.children) {
@@ -181,7 +229,14 @@ function Category() {
     });
   return (
     <Row>
-      <Button className="category-add-btn" type="primary" icon="folder-add" onClick={() => setCreateCategoryModalOpen(true)}>Add New Category</Button>
+      <Button
+        className="category-add-btn"
+        type="primary"
+        icon="folder-add"
+        onClick={() => setCreateCategoryModalOpen(true)}
+      >
+        Add New Category
+      </Button>
       <Search
         style={{ marginBottom: 8 }}
         placeholder="Search"
@@ -222,12 +277,47 @@ function Category() {
         visible={createCategoryModalOpen}
         onOk={handleCategoryCreate}
         okText="Create"
-        onCancel={() => setCreateCategoryModalOpen(false)}
+        onCancel={closeCreateCategoryModal}
       >
-        some shit
+        <Form onSubmit={handleCategoryCreate} className="login-form">
+          <Form.Item label="Name">
+            {getFieldDecorator('categoryName', {
+              rules: [
+                { required: true, message: 'Please enter category name!' }
+              ]
+            })(<Input placeholder="Name" size="large" />)}
+          </Form.Item>
+          <Form.Item label="Under Category">
+            {getFieldDecorator('parentCategory')(
+              <Select
+                placeholder="Select a category"
+                onChange={onCategoryChanged}
+              >
+                {categoriesList.map((cat, index) => (
+                  <Option value={cat.id} key={index}>
+                    {cat.name}
+                  </Option>
+                ))}
+              </Select>
+            )}
+          </Form.Item>
+          {categoryTypes.length > 0 && (
+            <Form.Item label="Under Type">
+              {getFieldDecorator('parentType')(
+                <Select placeholder="Select a type">
+                  {categoryTypes.map((cat, index) => (
+                    <Option value={cat.id} key={index}>
+                      {cat.name}
+                    </Option>
+                  ))}
+                </Select>
+              )}
+            </Form.Item>
+          )}
+        </Form>
       </Modal>
     </Row>
   );
 }
 
-export default Category;
+export default Form.create({ name: 'categoryForm' })(Category);

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import {
   Form,
   Input,
@@ -11,14 +11,14 @@ import {
   Upload,
   Icon,
   Divider,
-  Switch,
+  Switch
 } from 'antd';
 
 import RichInput from '../../components/RichInput';
 
 import { getParentChildArr } from '../../utils/helpers';
 import { StoreContext } from '../../contexts';
-import { URLS, FIRST_INDEX, LAST_INDEX, } from '../../constants';
+import { URLS, FIRST_INDEX, LAST_INDEX } from '../../constants';
 import { useFetch, usePrevious } from '../../hooks';
 import { baseURL } from '../../utils/API';
 import '../../assets/scss/createProductForm.scss';
@@ -26,7 +26,12 @@ import '../../assets/scss/createProductForm.scss';
 const { Title } = Typography;
 const { Option } = Select;
 
-function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
+function CreateProduct({
+  form,
+  handleFormSubmit,
+  productsList = [],
+  productObj = {}
+}) {
   const {
     getFieldDecorator,
     validateFields,
@@ -45,6 +50,20 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
   const [imagesListObj, setImagesListObj] = useState({ 0: [] });
 
   const { doFetch: doImageUpload } = useFetch();
+  const prevProductObj = usePrevious(productObj);
+  const prevParentCategories = usePrevious(parentCategories);
+
+  useEffect(() => {
+    const productObjIsReady =
+      JSON.stringify(prevProductObj) !== JSON.stringify(productObj);
+    const categoriesAreReady =
+      JSON.stringify(prevParentCategories) !== JSON.stringify(parentCategories);
+    if (productObjIsReady || categoriesAreReady) {
+      !!productObj.category && onCategoryChanged(productObj.category);
+      !!productObj.type && onCategoryTypeChanged(productObj.type);
+      !!productObj.sizeFieldsCountArr && setSizeFieldsCountArr(productObj.sizeFieldsCountArr);
+    }
+  }, [productObj, parentCategories]);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -53,16 +72,23 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
   };
 
   const onCategoryChanged = value => {
-    const selectedIndex = parentCategories.findIndex(({ id }) => value === id);
-    setCategoryTypes(parentCategories[selectedIndex].children);
+    const selectedIndex = parentCategories.findIndex(({ id }) => value == id);
+    console.log('selectedIndex: ', selectedIndex);
+    setCategoryTypes(
+      parentCategories[selectedIndex]
+        ? parentCategories[selectedIndex].children
+        : []
+    );
     setFieldsValue({
       type: undefined
     });
   };
 
   const onCategoryTypeChanged = value => {
-    const selectedIndex = categoryTypes.findIndex(({ id }) => value === id);
-    setCategoryTags(categoryTypes[selectedIndex].children);
+    const selectedIndex = categoryTypes.findIndex(({ id }) => value == id);
+    setCategoryTags(
+      categoryTypes[selectedIndex] ? categoryTypes[selectedIndex].children : []
+    );
     setFieldsValue({
       tag: undefined
     });
@@ -141,7 +167,7 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
       url: URLS.imageUpload,
       showSuccessNotification: true,
       successMessage: 'Image uploaded successfully.',
-      onSuccess: (imageResponse) => {
+      onSuccess: imageResponse => {
         let imagesListObjTmp = { ...imagesListObj };
 
         imagesListObjTmp[fieldIndex].push({
@@ -178,6 +204,7 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
       }
     });
   };
+  console.log('sizeFieldsCountArr', sizeFieldsCountArr);
 
   return (
     <Row>
@@ -186,6 +213,7 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
           <Col span={12}>
             <Form.Item label="Name:">
               {getFieldDecorator('name', {
+                initialValue: productObj.name,
                 rules: [
                   { required: true, message: 'Please enter product name!' }
                 ]
@@ -199,12 +227,13 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
           <Col span={8}>
             <Form.Item label="Category">
               {getFieldDecorator('category', {
+                initialValue: productObj.category,
                 rules: [
                   { required: true, message: 'Please select the category!' }
                 ]
               })(
                 <Select
-                  placeholder="Select a categorty"
+                  placeholder="Select a category"
                   onChange={onCategoryChanged}
                 >
                   {parentCategories.map((cat, index) => (
@@ -220,6 +249,7 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
             {categoryTypes.length > 0 && (
               <Form.Item label="Type">
                 {getFieldDecorator('type', {
+                  initialValue: productObj.type,
                   rules: [
                     { required: true, message: 'Please select the type!' }
                   ]
@@ -241,9 +271,7 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
           <Col span={8}>
             {categoryTags.length > 0 && (
               <Form.Item label="Tag">
-                {getFieldDecorator('tag', {
-                  rules: [{ required: true, message: 'Please select the tag!' }]
-                })(
+                {getFieldDecorator('tag', { initialValue: productObj.tag })(
                   <Select placeholder="Select a tag">
                     {categoryTags.map((cat, index) => (
                       <Option value={cat.id} key={index}>
@@ -259,9 +287,12 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
         <Divider />
         <Row>
           <Form.Item label="Description">
-            {getFieldDecorator('description')(
+            {getFieldDecorator('description', {
+              initialValue: productObj.description
+            })(
               <RichInput
                 placeholder="Description"
+                initialValue={productObj.description}
                 onChangeHandler={setDescription}
               />
             )}
@@ -270,63 +301,75 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
         <Divider />
         <Row>
           <Form.Item label="Details">
-            {getFieldDecorator('details')(
-              <RichInput placeholder="Details" onChangeHandler={setDetails} />
+            {getFieldDecorator('details', { initialValue: productObj.details })(
+              <RichInput
+                placeholder="Details"
+                onChangeHandler={setDetails}
+                initialValue={productObj.description}
+              />
             )}
           </Form.Item>
         </Row>
         <Divider />
         <Row>
           <Form.Item label="Main Price" className="price-input">
-            {getFieldDecorator('mainPrice')(
-              <Input size="large" />
-            )}
+            {getFieldDecorator('mainPrice', {
+              initialValue: productObj.mainPrice
+            })(<Input size="large" />)}
           </Form.Item>
         </Row>
         <Divider />
         <Row>
           <Form.Item label="Is Best Product:">
-            {getFieldDecorator('isBest')(
-              <Switch />
+            {getFieldDecorator('isBest', { initialValue: productObj.isBest })(
+              <Switch checked={getFieldValue('isBest')} />
             )}
           </Form.Item>
         </Row>
         <Divider />
         <Row>
           <Form.Item label="Is Handmade Product:">
-            {getFieldDecorator('isHandmade')(
-              <Switch />
-            )}
+            {getFieldDecorator('isHandmade', {
+              initialValue: productObj.isHandmade
+            })(<Switch checked={getFieldValue('isHandmade')} />)}
           </Form.Item>
         </Row>
         <Divider />
         <Row>
           <Form.Item label="Is Product Out Of Stock:">
-            {getFieldDecorator('isOutOfStuck')(
-              <Switch />
-            )}
+            {getFieldDecorator('isOutOfStuck', {
+              initialValue: productObj.isOutOfStuck
+            })(<Switch checked={getFieldValue('isOutOfStuck')} />)}
           </Form.Item>
         </Row>
         <Divider />
         <Row>
           <Col span={8}>
             <Form.Item label="Product Place:">
-              {getFieldDecorator('sortPlace', {initialValue: LAST_INDEX })(
+              {getFieldDecorator('sortPlace', {
+                initialValue: productObj.sortPlace || LAST_INDEX
+              })(
                 <Select
                   showSearch
                   placeholder="Select a product"
                   optionFilterProp="children"
-                  defaultValue={LAST_INDEX}
                   filterOption={(input, option) =>
-                    option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                    option.props.children
+                      .toLowerCase()
+                      .indexOf(input.toLowerCase()) >= 0
                   }
                 >
-                  <Option value={FIRST_INDEX} style={{color: '#7bb3b3'}}>At First</Option>
-                  <Option value={LAST_INDEX} style={{color: '#7bb3b3'}}>At Last</Option>
-                  {productsList.map(({id, name}) => (
-                    <Option key={id} value={id}>Before: {name}</Option>
-                  ))}                  
-                  
+                  <Option value={FIRST_INDEX} style={{ color: '#7bb3b3' }}>
+                    At First
+                  </Option>
+                  <Option value={LAST_INDEX} style={{ color: '#7bb3b3' }}>
+                    At Last
+                  </Option>
+                  {productsList.map(({ id, name }) => (
+                    <Option key={id} value={id}>
+                      Before: {name}
+                    </Option>
+                  ))}
                 </Select>
               )}
             </Form.Item>
@@ -342,7 +385,9 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
               <Row gutter={[5, 0]} key={fieldIndex}>
                 <Col span={3}>
                   <Form.Item label="Size:">
-                    {getFieldDecorator(`sizeOption${fieldIndex}`)(
+                    {getFieldDecorator(`sizeOption${fieldIndex}`, {
+                      initialValue: productObj[`sizeOption${fieldIndex}`]
+                    })(
                       <Select placeholder="Select a size">
                         {sizes.map((size, index) => (
                           <Option value={size.id} key={index}>
@@ -355,42 +400,44 @@ function CreateProduct({ form, handleFormSubmit, productsList = [] }) {
                 </Col>
                 <Col span={3}>
                   <Form.Item label="Size detail:">
-                    {getFieldDecorator(`sizeDetail${fieldIndex}`)(<Input />)}
+                    {getFieldDecorator(`sizeDetail${fieldIndex}`, {
+                      initialValue: productObj[`sizeDetail${fieldIndex}`]
+                    })(<Input />)}
                   </Form.Item>
                 </Col>
                 <Col span={3}>
                   <Form.Item label="Size Price:">
-                    {getFieldDecorator(`sizePrice${fieldIndex}`)(
-                      <Input />
-                    )}
+                    {getFieldDecorator(`sizePrice${fieldIndex}`, {
+                      initialValue: productObj[`sizePrice${fieldIndex}`]
+                    })(<Input />)}
                   </Form.Item>
                 </Col>
                 <Col span={3}>
                   <Form.Item label="Height:">
-                    {getFieldDecorator(`sizeHeight${fieldIndex}`)(
-                      <Input />
-                    )}
+                    {getFieldDecorator(`sizeHeight${fieldIndex}`, {
+                      initialValue: productObj[`sizeHeight${fieldIndex}`]
+                    })(<Input />)}
                   </Form.Item>
                 </Col>
                 <Col span={3}>
                   <Form.Item label="Chest:">
-                    {getFieldDecorator(`sizeChest${fieldIndex}`)(
-                      <Input />
-                    )}
+                    {getFieldDecorator(`sizeChest${fieldIndex}`, {
+                      initialValue: productObj[`sizeChest${fieldIndex}`]
+                    })(<Input />)}
                   </Form.Item>
                 </Col>
                 <Col span={3}>
                   <Form.Item label="Waist:">
-                    {getFieldDecorator(`sizeWaist${fieldIndex}`)(
-                      <Input />
-                    )}
+                    {getFieldDecorator(`sizeWaist${fieldIndex}`, {
+                      initialValue: productObj[`sizeWaist${fieldIndex}`]
+                    })(<Input />)}
                   </Form.Item>
                 </Col>
                 <Col span={3}>
                   <Form.Item label="Hips:">
-                    {getFieldDecorator(`sizeHips${fieldIndex}`)(
-                      <Input />
-                    )}
+                    {getFieldDecorator(`sizeHips${fieldIndex}`, {
+                      initialValue: productObj[`sizeHips${fieldIndex}`]
+                    })(<Input />)}
                   </Form.Item>
                 </Col>
                 <Col span={3}>

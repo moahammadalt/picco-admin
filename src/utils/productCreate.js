@@ -6,13 +6,6 @@ import {
 } from '../constants';
 import { createHash } from '../utils/helpers';
 
-export const extractSlug = (name = '') => {
-  return name
-    .toLowerCase()
-    .replace(/ /g, '-')
-    .replace(/[^\w-]+/g, '');
-};
-
 export const extractSizesArr = (values = {}) => {
   const sizesArr = Object.keys(values)
     .filter(key => key.startsWith('sizeOption'))
@@ -63,6 +56,30 @@ export const extractDefaultColorId = values => {
   const defaultColorIndex =
     defaultColorInArr[0][defaultColorInArr[0].length - 1];
   return values[`colorOption${defaultColorIndex}`];
+};
+
+export const extractProductPlace = (sortIndex, productsList) => {
+  const productsListHashObj = createHash(productsList, 'id');
+  const productsIndexesArr = productsListHashObj
+    .values()
+    .map(({ sort_index }) => sort_index);
+
+  const isFirstProduct = sortIndex === Math.min(...productsIndexesArr);
+  const isLastProduct = sortIndex === Math.max(...productsIndexesArr);
+  
+  const getPlaceInBetween = () =>
+    Math.min(...productsIndexesArr.filter(number => number > sortIndex));
+
+  switch (true) {
+    case isFirstProduct:
+      return FIRST_INDEX;
+
+    case isLastProduct:
+      return LAST_INDEX;
+
+    default:
+      return getPlaceInBetween();
+  }
 };
 
 export const extractProductIndex = ({ sortPlace }, productsList) => {

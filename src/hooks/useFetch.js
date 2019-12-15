@@ -60,6 +60,8 @@ function useFetch(fetchInitialObj) {
           );
       } catch (err) {
         console.log('err: ', err);
+        !!fetchObj.onError && fetchObj.onError(err);
+        !!fetchInitialObj && fetchInitialObj.onError && fetchInitialObj.onError(err);
         setError(err);
       } finally {
         setLoading(false);

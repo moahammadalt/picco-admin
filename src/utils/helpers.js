@@ -60,4 +60,11 @@ export const getParentChildArr = (arr, parentIdKey) => {
     }
   }
   return tree;
-}
+};
+
+export const extractSlug = (name = '') => {
+  return name
+    .toLowerCase()
+    .replace(/ /g, '-')
+    .replace(/[^\w-]+/g, '');
+};

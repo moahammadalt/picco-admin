@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 
 import 'react-quill/dist/quill.snow.css';
@@ -22,8 +22,14 @@ const formats = [
   'link', 'image', 'video'
 ]
 
-function RichInput({ placeholder = '', onChangeHandler}) {
+function RichInput({ placeholder = '', onChangeHandler, initialValue = ''}) {
   const [ editorHtml, setEditorHtml ] = useState('');
+
+  useEffect(() => {
+    if(!editorHtml && !!initialValue) {
+      setEditorHtml(initialValue);
+    }
+  }, [initialValue]);
 
   const handleChange = (html) => {
     setEditorHtml(html);
