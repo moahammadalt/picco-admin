@@ -14,19 +14,19 @@ import {
   Switch
 } from 'antd';
 
-import RichInput from '../../components/RichInput';
+import RichInput from '../RichInput';
 
 import { getParentChildArr } from '../../utils/helpers';
 import { StoreContext } from '../../contexts';
 import { URLS, FIRST_INDEX, LAST_INDEX } from '../../constants';
 import { useFetch, usePrevious } from '../../hooks';
 import { baseURL } from '../../utils/API';
-import '../../assets/scss/createProductForm.scss';
+import '../../assets/scss/CreateUpdateProductForm.scss';
 
 const { Title } = Typography;
 const { Option } = Select;
 
-function CreateProduct({
+function CreateUpdateProductForm({
   form,
   handleFormSubmit,
   productsList = [],
@@ -62,6 +62,7 @@ function CreateProduct({
       !!productObj.category && onCategoryChanged(productObj.category);
       !!productObj.type && onCategoryTypeChanged(productObj.type);
       !!productObj.sizeFieldsCountArr && setSizeFieldsCountArr(productObj.sizeFieldsCountArr);
+      !!productObj.colorFieldsCountArr && setColorFieldsCountArr(productObj.colorFieldsCountArr);
     }
   }, [productObj, parentCategories]);
 
@@ -475,7 +476,9 @@ function CreateProduct({
               <Row gutter={[10, 0]} key={fieldIndex}>
                 <Col span={4}>
                   <Form.Item label={`Color: ${fieldIndex} index: ${i}`}>
-                    {getFieldDecorator(`colorOption${fieldIndex}`)(
+                    {getFieldDecorator(`colorOption${fieldIndex}`, {
+                      initialValue: productObj[`colorOption${fieldIndex}`]
+                    })(
                       <Select placeholder="Select a color">
                         {colors.map((color, index) => (
                           <Option value={color.id} key={index}>
@@ -488,7 +491,9 @@ function CreateProduct({
                 </Col>
                 <Col span={4}>
                   <Form.Item label="Color code:">
-                    {getFieldDecorator(`colorCode${fieldIndex}`)(<Input />)}
+                    {getFieldDecorator(`colorCode${fieldIndex}`, {
+                      initialValue: productObj[`colorCode${fieldIndex}`]
+                    })(<Input />)}
                   </Form.Item>
                 </Col>
                 <Col span={8}>
@@ -520,7 +525,9 @@ function CreateProduct({
                 </Col>
                 <Col span={4}>
                   <Form.Item label="Set Default Color:">
-                    {getFieldDecorator(`colorDefault${fieldIndex}`)(
+                    {getFieldDecorator(`colorDefault${fieldIndex}`, {
+                      initialValue: productObj[`colorDefault${fieldIndex}`]
+                    })(
                       <Switch
                         checked={getFieldValue(`colorDefault${fieldIndex}`)}
                         onChange={value =>
@@ -581,4 +588,4 @@ function CreateProduct({
   );
 }
 
-export default Form.create({ name: 'loginForm' })(CreateProduct);
+export default Form.create({ name: 'loginForm' })(CreateUpdateProductForm);

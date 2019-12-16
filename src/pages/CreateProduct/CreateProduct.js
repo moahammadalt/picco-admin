@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form } from 'antd';
 import { Redirect } from 'react-router-dom';
 
-import CreateProductForm from './CreateProductForm';
+import CreateUpdateProductForm from '../../components/CreateUpdateProductForm';
 
 import { useFetch } from '../../hooks';
 import { URLS } from '../../constants';
@@ -12,7 +12,7 @@ import {
   extractColorsArr,
   extractDefaultColorId,
   extractProductIndex,
-} from '../../utils/productCreate';
+} from '../../utils/productCreateUpdate';
 import '../../assets/scss/createProduct.scss';
 
 function CreateProduct() {
@@ -53,7 +53,7 @@ function CreateProduct() {
     <div className="main">
       {productCreated && <Redirect to="/" />}
       <div className="form-wrapper">
-        <CreateProductForm handleFormSubmit={handleFormSubmit} productsList={productsList} />
+        <CreateUpdateProductForm handleFormSubmit={handleFormSubmit} productsList={productsList} />
       </div>
       <div className="brief-wrapper hidden">sdcsa</div>
     </div>

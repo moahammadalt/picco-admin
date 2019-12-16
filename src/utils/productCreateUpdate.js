@@ -4,7 +4,7 @@ import {
   SORT_INDEX_STEP,
   SORT_INDEX_DIGITS_NUMBER
 } from '../constants';
-import { createHash } from '../utils/helpers';
+import { createHash } from './helpers';
 
 export const extractSizesArr = (values = {}) => {
   const sizesArr = Object.keys(values)
