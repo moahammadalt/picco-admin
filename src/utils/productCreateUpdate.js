@@ -4,7 +4,7 @@ import {
   SORT_INDEX_STEP,
   SORT_INDEX_DIGITS_NUMBER
 } from '../constants';
-import { createHash } from './helpers';
+import { createHash, extractSlug } from './helpers';
 
 export const extractSizesArr = (values = {}) => {
   const sizesArr = Object.keys(values)
@@ -13,6 +13,7 @@ export const extractSizesArr = (values = {}) => {
       const sizeIndex = key[key.length - 1];
       return {
         is_checked: true,
+        refId: values[`sizeRefId${sizeIndex}`],
         id: values[`sizeOption${sizeIndex}`],
         details: values[`sizeDetail${sizeIndex}`],
         height: values[`sizeHeight${sizeIndex}`],
@@ -33,6 +34,7 @@ export const extractColorsArr = values => {
       const colorIndex = key[key.length - 1];
       return {
         is_checked: true,
+        refId: values[`colorRefId${colorIndex}`],
         id: values[`colorOption${colorIndex}`],
         product_color_code: values[`colorCode${colorIndex}`],
         images: values[`colorImages${colorIndex}`]
@@ -125,3 +127,21 @@ export const extractProductIndex = ({ sortPlace }, productsList) => {
 
   return sortIndex;
 };
+
+export const extractProductObj = (values, productsList) => ({
+  name: values.name,
+  slug: extractSlug(values.name),
+  category_id: values.category,
+  category_type_id: values.type,
+  description: values.description,
+  details: values.details,
+  price: values.mainPrice,
+  currency: 'EUR',
+  is_best: values.isBest ? '1' : '0',
+  is_handmade: values.isHandmade ? '1' : '0',
+  stock_status: values.isOutOfStuck ? '0' : '1',
+  default_color_id: extractDefaultColorId(values),
+  sort_index: extractProductIndex(values, productsList),
+  sizes: extractSizesArr(values),
+  colors: extractColorsArr(values),
+})

@@ -61,8 +61,12 @@ function CreateUpdateProductForm({
     if (productObjIsReady || categoriesAreReady) {
       !!productObj.category && onCategoryChanged(productObj.category);
       !!productObj.type && onCategoryTypeChanged(productObj.type);
-      !!productObj.sizeFieldsCountArr && setSizeFieldsCountArr(productObj.sizeFieldsCountArr);
-      !!productObj.colorFieldsCountArr && setColorFieldsCountArr(productObj.colorFieldsCountArr);
+      !!productObj.type && setFieldsValue({ type: productObj.type });
+      !!productObj.sizeFieldsCountArr &&
+        setSizeFieldsCountArr(productObj.sizeFieldsCountArr);
+      !!productObj.colorFieldsCountArr &&
+        setColorFieldsCountArr(productObj.colorFieldsCountArr);
+      !!productObj.imageListObj && setImagesListObj(productObj.imageListObj);
     }
   }, [productObj, parentCategories]);
 
@@ -74,7 +78,6 @@ function CreateUpdateProductForm({
 
   const onCategoryChanged = value => {
     const selectedIndex = parentCategories.findIndex(({ id }) => value == id);
-    console.log('selectedIndex: ', selectedIndex);
     setCategoryTypes(
       parentCategories[selectedIndex]
         ? parentCategories[selectedIndex].children
@@ -127,7 +130,7 @@ function CreateUpdateProductForm({
     }
   };
 
-  const removeSizeFields = index => {
+  const removeSizeFields = (index, fieldIndex) => {
     const tmpArr = [...sizeFieldsCountArr];
     tmpArr.splice(index, 1);
     setSizeFieldsCountArr(tmpArr);
@@ -205,7 +208,7 @@ function CreateUpdateProductForm({
       }
     });
   };
-  console.log('sizeFieldsCountArr', sizeFieldsCountArr);
+  //console.log('imagesListObj', imagesListObj, colorFieldsCountArr);
 
   return (
     <Row>
@@ -354,11 +357,12 @@ function CreateUpdateProductForm({
                   showSearch
                   placeholder="Select a product"
                   optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.props.children
-                      .toLowerCase()
-                      .indexOf(input.toLowerCase()) >= 0
-                  }
+                  filterOption={(input, option) => {
+                    const str = Array.isArray(option.props.children)
+                      ? option.props.children.join('')
+                      : option.props.children;
+                    return str.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+                  }}
                 >
                   <Option value={FIRST_INDEX} style={{ color: '#7bb3b3' }}>
                     At First
@@ -366,11 +370,14 @@ function CreateUpdateProductForm({
                   <Option value={LAST_INDEX} style={{ color: '#7bb3b3' }}>
                     At Last
                   </Option>
-                  {productsList.map(({ id, name }) => (
-                    <Option key={id} value={id}>
-                      Before: {name}
-                    </Option>
-                  ))}
+                  {productsList.map(
+                    ({ id, name }) =>
+                      productObj.name !== name && (
+                        <Option key={id} value={id}>
+                          Before: {name}
+                        </Option>
+                      )
+                  )}
                 </Select>
               )}
             </Form.Item>
@@ -382,7 +389,14 @@ function CreateUpdateProductForm({
             <Title level={4}>Sizes</Title>
           </Row>
           {sizeFieldsCountArr.map((fieldIndex, i) => (
-            <>
+            <div key={i}>
+              <Form.Item className="hidden">
+                {getFieldDecorator(`sizeRefId${fieldIndex}`, {
+                  initialValue: productObj[`sizeRefId${fieldIndex}`],
+                })(
+                  <Input />
+                )}
+              </Form.Item>
               <Row gutter={[5, 0]} key={fieldIndex}>
                 <Col span={3}>
                   <Form.Item label="Size:">
@@ -447,7 +461,7 @@ function CreateUpdateProductForm({
                       className="m-t-43 m-r-5"
                       type="dashed"
                       icon="minus"
-                      onClick={() => removeSizeFields(i)}
+                      onClick={() => removeSizeFields(i, fieldIndex)}
                     />
                   )}
                   {i === sizeFieldsCountArr.length - 1 && (
@@ -463,7 +477,7 @@ function CreateUpdateProductForm({
               </Row>
               {sizeFieldsCountArr.length !== 1 &&
                 i !== sizeFieldsCountArr.length - 1 && <Divider dashed />}
-            </>
+            </div>
           ))}
         </Row>
         <Divider />
@@ -472,7 +486,14 @@ function CreateUpdateProductForm({
             <Title level={4}>Colors & Images</Title>
           </Row>
           {colorFieldsCountArr.map((fieldIndex, i) => (
-            <>
+            <div key={i}>
+              <Form.Item className="hidden">
+                {getFieldDecorator(`colorRefId${fieldIndex}`, {
+                  initialValue: productObj[`colorRefId${fieldIndex}`],
+                })(
+                  <Input />
+                )}
+              </Form.Item>
               <Row gutter={[10, 0]} key={fieldIndex}>
                 <Col span={4}>
                   <Form.Item label={`Color: ${fieldIndex} index: ${i}`}>
@@ -501,7 +522,9 @@ function CreateUpdateProductForm({
                     label="Color Images:"
                     className="product-image-upload"
                   >
-                    {getFieldDecorator(`colorImages${fieldIndex}`)(
+                    {getFieldDecorator(`colorImages${fieldIndex}`, {
+                      initialValue: productObj[`colorImages${fieldIndex}`]
+                    })(
                       <Upload
                         listType="picture-card"
                         fileList={imagesListObj[fieldIndex]}
@@ -558,7 +581,7 @@ function CreateUpdateProductForm({
               </Row>
               {colorFieldsCountArr.length !== 1 &&
                 i !== colorFieldsCountArr.length - 1 && <Divider dashed />}
-            </>
+            </div>
           ))}
         </Row>
         {/* <Row>

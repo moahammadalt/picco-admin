@@ -6,13 +6,7 @@ import CreateUpdateProductForm from '../../components/CreateUpdateProductForm';
 
 import { useFetch } from '../../hooks';
 import { URLS } from '../../constants';
-import { extractSlug } from '../../utils/helpers';
-import {
-  extractSizesArr,
-  extractColorsArr,
-  extractDefaultColorId,
-  extractProductIndex,
-} from '../../utils/productCreateUpdate';
+import { extractProductObj } from '../../utils/productCreateUpdate';
 import '../../assets/scss/createProduct.scss';
 
 function CreateProduct() {
@@ -24,27 +18,10 @@ function CreateProduct() {
   const [productCreated, setProductCreated] = useState(false);
 
   const handleFormSubmit = values => {
-    const productObj = {
-      name: values.name,
-      slug: extractSlug(values.name),
-      category_id: values.category,
-      category_type_id: values.type,
-      description: values.description,
-      details: values.details,
-      price: values.mainPrice,
-      currency: 'EUR',
-      is_best: values.isBest ? '1' : '0',
-      is_handmade: values.isHandmade ? '1' : '0',
-      stock_status: values.isOutOfStuck ? '0' : '1',
-      default_color_id: extractDefaultColorId(values),
-      sort_index: extractProductIndex(values, productsList),
-      sizes: extractSizesArr(values),
-      colors: extractColorsArr(values),
-    };
 
     doProductCreateFetch({
       url: URLS.productCreate,
-      params: productObj,
+      params: extractProductObj(),
       onSuccess: data => !!data.id && setProductCreated(true)
     });
   };

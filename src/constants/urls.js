@@ -6,6 +6,7 @@ const URLS = {
   colorList: '/color',
   imageUpload: '/productImage/create',
   productCreate: '/product/create',
+  productUpdate: ({ slug }) => `/product/${slug}/update`,
   productListGet: '/product',
   productItemGet: ({ slug }) => `/product/${slug}`,
   productDelete: ({ slug }) => `/product/${slug}/delete`,
