@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Empty } from 'antd';
+import { Redirect } from 'react-router-dom';
 
 import CreateUpdateProductForm from '../../components/CreateUpdateProductForm';
 
 import { useFetch } from '../../hooks';
 import { extractProductPlace } from '../../utils/productCreateUpdate';
 import { baseURL } from '../../utils/API';
-import { extractProductObj } from '../../utils/productCreateUpdate';
+import { extractProductObj, validateProduct } from '../../utils/productCreateUpdate';
 import { URLS } from '../../constants';
 
 function ProductDetails({ match: { params: { productSlug } } }) {
@@ -24,6 +25,7 @@ function ProductDetails({ match: { params: { productSlug } } }) {
   const { doFetch: doProductUpdateFetch, } = useFetch();
 
   const [noProductFoundAlert, setNoProductFoundAlert] = useState(false);
+  const [productUpdated, setProductUpdated] = useState(false);
 
   const productObj = {
     name: productData.name,
@@ -75,10 +77,7 @@ function ProductDetails({ match: { params: { productSlug } } }) {
     return acc;
   }, {});
 
-  console.log('productData', productData);
-
   const handleFormSubmit = (values) => {
-    console.log('values: ', values);
     const paramsObj = extractProductObj(values, productsList);
     delete paramsObj.slug;
     paramsObj['id'] = productData.id;
@@ -103,21 +102,24 @@ function ProductDetails({ match: { params: { productSlug } } }) {
       }
     });
 
-    console.log('paramsObj' , paramsObj);
+    if(!validateProduct(paramsObj)) return; 
     
     doProductUpdateFetch({
       url: URLS.productUpdate({ slug: productData.slug}),
       params: paramsObj,
       showSuccessNotification: true,
-      onSuccess: (data) => {
-        console.log('data: ', data);
-      }
+      onSuccess: data => !!data.id && setProductUpdated(true)
     });
+  }
+
+  if(productUpdated) {
+    return <Redirect to="/" />;
   }
 
   if(noProductFoundAlert) {
     return <Empty description="No product found!"/> 
   }
+
   return (
     <CreateUpdateProductForm handleFormSubmit={handleFormSubmit} productsList={productsList} productObj={productObj} />
   );

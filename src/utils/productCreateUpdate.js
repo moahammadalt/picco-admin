@@ -1,10 +1,12 @@
+import { notification } from 'antd';
+
 import {
   FIRST_INDEX,
   LAST_INDEX,
   SORT_INDEX_STEP,
   SORT_INDEX_DIGITS_NUMBER
 } from '../constants';
-import { createHash, extractSlug } from './helpers';
+import { createHash, extractSlug, arrayHasDuplicates } from './helpers';
 
 export const extractSizesArr = (values = {}) => {
   const sizesArr = Object.keys(values)
@@ -144,4 +146,38 @@ export const extractProductObj = (values, productsList) => ({
   sort_index: extractProductIndex(values, productsList),
   sizes: extractSizesArr(values),
   colors: extractColorsArr(values),
-})
+});
+
+export const validateProduct = (paramsObj) => {
+  let errorMessage;
+
+  if(paramsObj.colors.length === 0) {
+    errorMessage = 'There should be at least one color added.';
+  }
+  if(paramsObj.sizes.length === 0) {
+    errorMessage = 'There should be at least one size added.';
+  }
+
+  const colorsIds = paramsObj.colors.map(color => color.id);
+  if(arrayHasDuplicates(colorsIds)) {
+    errorMessage = 'Colors can not be duplicated, each color should be different from the other.';
+  }
+
+  const sizesIds = paramsObj.sizes.map(size => size.id);
+  if(arrayHasDuplicates(sizesIds)) {
+    errorMessage = 'Sizes can not be duplicated, each size should be different from the other.';
+  }
+
+  if(!!errorMessage) {
+    notification.warning({
+      placement: 'bottomRight',
+      errorMessage: 'An error occured!',
+      duration: 7,
+      description: errorMessage
+    });
+    return false;
+  }
+  else{
+    return true;
+  }
+};

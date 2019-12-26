@@ -187,13 +187,16 @@ function CreateUpdateProductForm({
     });
   };
 
-  const handleImageUploadRemove = (fileData, fileIndex) => {
+  const handleImageUploadRemove = (fileData, fieldIndex) => {
     const tmpImagesListObj = { ...imagesListObj };
-    const findSelectedImageIndex = imagesListObj[fileIndex].findIndex(
+    const findSelectedImageIndex = imagesListObj[fieldIndex].findIndex(
       ({ uid }) => fileData.uid === uid
     );
-    tmpImagesListObj[fileIndex].splice(findSelectedImageIndex, 1);
+    tmpImagesListObj[fieldIndex].splice(findSelectedImageIndex, 1);
     setImagesListObj(tmpImagesListObj);
+    setFieldsValue({
+      [`colorImages${fieldIndex}`]: tmpImagesListObj[fieldIndex]
+    });
   };
 
   const handleDefaultColorChange = (value, fieldIndex) => {
@@ -208,7 +211,6 @@ function CreateUpdateProductForm({
       }
     });
   };
-  //console.log('imagesListObj', imagesListObj, colorFieldsCountArr);
 
   return (
     <Row>

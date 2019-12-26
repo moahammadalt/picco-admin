@@ -68,3 +68,15 @@ export const extractSlug = (name = '') => {
     .replace(/ /g, '-')
     .replace(/[^\w-]+/g, '');
 };
+
+export const arrayHasDuplicates = (array) => {
+  var valuesSoFar = [];
+  for (var i = 0; i < array.length; ++i) {
+      var value = array[i];
+      if (valuesSoFar.indexOf(value) !== -1) {
+          return true;
+      }
+      valuesSoFar.push(value);
+  }
+  return false;
+}

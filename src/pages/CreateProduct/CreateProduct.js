@@ -6,7 +6,7 @@ import CreateUpdateProductForm from '../../components/CreateUpdateProductForm';
 
 import { useFetch } from '../../hooks';
 import { URLS } from '../../constants';
-import { extractProductObj } from '../../utils/productCreateUpdate';
+import { extractProductObj, validateProduct } from '../../utils/productCreateUpdate';
 import '../../assets/scss/createProduct.scss';
 
 function CreateProduct() {
@@ -18,10 +18,12 @@ function CreateProduct() {
   const [productCreated, setProductCreated] = useState(false);
 
   const handleFormSubmit = values => {
+    const paramsObj = extractProductObj(values, productsList);
+    if(!validateProduct(paramsObj)) return;  
 
     doProductCreateFetch({
       url: URLS.productCreate,
-      params: extractProductObj(),
+      params: paramsObj,
       onSuccess: data => !!data.id && setProductCreated(true)
     });
   };
