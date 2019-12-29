@@ -1,8 +1,8 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { List, Row, Icon, Modal, Input, Button, notification } from 'antd';
 
-import { StoreContext } from '../../contexts';
-import { useFetch } from '../../hooks';
+import { StoreContext, LayoutContext } from '../../contexts';
+import { useFetch, usePrevious } from '../../hooks';
 import { URLS } from '../../constants';
 import { extractSlug } from '../../utils/helpers';
 
@@ -11,6 +11,9 @@ function Size() {
     data: { sizes = [] },
     doSizesFetch
   } = useContext(StoreContext);
+  const { setHeaderComponent } = useContext(LayoutContext);
+
+  const prevSizes = usePrevious(sizes);
 
   const [deleteModalItem, setDeleteModalItem] = useState({});
   const [updateModalItem, setUpdateModalItem] = useState({});
@@ -21,6 +24,14 @@ function Size() {
   const { doFetch: doCreateFetch } = useFetch();
   const { doFetch: doUpdateFetch } = useFetch();
   const { doFetch: doDeleteFetch } = useFetch();
+
+  useEffect(() => {
+    const sizeIsChanged = JSON.stringify(sizes) !== JSON.stringify(prevSizes);
+    sizeIsChanged && setHeaderComponent(<b>Total sizes {sizes.length}</b>);
+    return () => {
+      setHeaderComponent(null);
+    };
+  }, [sizes]);
 
   const closeCreateSizeModal = () => {
     setCreateSizeModalOpen(false);

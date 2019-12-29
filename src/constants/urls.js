@@ -19,6 +19,9 @@ const URLS = {
   colorCreate: '/color/create',
   colorDelete: ({ slug }) => `/color/${slug}/delete`,
   colorUpdate: ({ slug }) => `/color/${slug}/update`,
+  demandsList: '/productUserDemands',
+  subscribersList: '/subscribers',
+  usersList: '/users',
 }
 
 export default URLS;

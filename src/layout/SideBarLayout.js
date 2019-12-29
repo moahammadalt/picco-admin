@@ -6,6 +6,7 @@ import pathToRegexp from 'path-to-regexp';
 
 import { dashboardRoutes } from '../router';
 import { LayoutContext } from '../contexts';
+import { URL_BASE_NAME } from '../constants';
 
 const { Sider } = Layout;
 
@@ -27,10 +28,9 @@ function SideBarLayout(props) {
       collapsed={sideBarCollapsed}
       onCollapse={() => setCollapsed(!sideBarCollapsed)}
     >
-      <div className="logo">
+      <a href={URL_BASE_NAME} className="logo">
         <img src={require('../assets/img/favicon.png')} alt="" />
-        {!sideBarCollapsed && <span>Picco Logo</span>}
-      </div>
+      </a>
       <Menu
         theme={theme}
         mode="inline"

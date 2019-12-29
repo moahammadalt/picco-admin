@@ -1,9 +1,9 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { List, Row, Icon, Modal, Input, Button, notification } from 'antd';
-import { SketchPicker } from 'react-color';
+//import { SketchPicker } from 'react-color';
 
-import { StoreContext } from '../../contexts';
-import { useFetch } from '../../hooks';
+import { StoreContext, LayoutContext } from '../../contexts';
+import { useFetch, usePrevious } from '../../hooks';
 import { URLS } from '../../constants';
 import { extractSlug } from '../../utils/helpers';
 
@@ -12,23 +12,35 @@ function Color() {
     data: { colors = [] },
     doColorsFetch
   } = useContext(StoreContext);
+  const { setHeaderComponent } = useContext(LayoutContext);
+
+  const prevColors = usePrevious(colors);
 
   const [deleteModalItem, setDeleteModalItem] = useState({});
   const [updateModalItem, setUpdateModalItem] = useState({});
   const [updateModalItemName, setUpdateModalItemName] = useState('');
   const [createColorModalOpen, setCreateColorModalOpen] = useState(false);
   const [newColorName, setNewColorName] = useState('');
-  const [selectedColorHex, setSelectedColorHex] = useState('');
-  const [colorPickerIsVisible, setColorPickerIsVisible] = useState(false);
+  //const [selectedColorHex, setSelectedColorHex] = useState('');
+  //const [colorPickerIsVisible, setColorPickerIsVisible] = useState(false);
 
   const { doFetch: doCreateFetch } = useFetch();
   const { doFetch: doUpdateFetch } = useFetch();
   const { doFetch: doDeleteFetch } = useFetch();
 
+  useEffect(() => {
+    const colorIsChanged =
+      JSON.stringify(colors) !== JSON.stringify(prevColors);
+    colorIsChanged && setHeaderComponent(<b>Total colors {colors.length}</b>);
+    return () => {
+      setHeaderComponent(null);
+    };
+  }, [colors]);
+
   const closeCreateColorModal = () => {
     setCreateColorModalOpen(false);
-    setColorPickerIsVisible(false);
-    setSelectedColorHex('');
+    //setColorPickerIsVisible(false);
+    //setSelectedColorHex('');
     setNewColorName('');
   };
 

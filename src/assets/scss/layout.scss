@@ -40,6 +40,28 @@
     cursor: pointer;
   }
 }
+
+
+.filter-select{
+  width: 220px;
+  margin-left: 10px;
+}
+
+.filter-item{
+  margin-right: 30px;
+  display: inline;
+}
+
+.filter-by-name{
+  width: 350px;
+  margin-left: 10px;
+}
+
+.ant-popover-inner-content{
+  max-width: 400px;
+  word-break: break-all;
+}
+
 .hidden{
   display: none;
 }

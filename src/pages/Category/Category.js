@@ -11,9 +11,9 @@ import {
   Select
 } from 'antd';
 
-import { StoreContext } from '../../contexts';
+import { StoreContext, LayoutContext } from '../../contexts';
 import { getParentChildArr, extractSlug } from '../../utils/helpers';
-import { useFetch } from '../../hooks';
+import { useFetch, usePrevious } from '../../hooks';
 import { URLS } from '../../constants';
 
 import '../../assets/scss/category.scss';
@@ -33,7 +33,10 @@ function Category({ form }) {
     data: { categories = [] },
     doCategoriesFetch
   } = useContext(StoreContext);
+  const { setHeaderComponent } = useContext(LayoutContext);
   const categoriesList = getParentChildArr(categories);
+
+  const prevCategories = usePrevious(categories);
 
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [autoExpandParent, setAutoExpandParent] = useState(true);
@@ -53,6 +56,16 @@ function Category({ form }) {
       setExpandedKeys(categoriesList.map(category => category.id));
     }
   }, [categoriesList]);
+
+  useEffect(() => {
+    const categoriesChanged =
+      JSON.stringify(categories) !== JSON.stringify(prevCategories);
+    categoriesChanged &&
+      setHeaderComponent(<b>Total categories {categories.length}</b>);
+    return () => {
+      setHeaderComponent(null);
+    };
+  }, [categories]);
 
   const dataList = [];
   const generateList = data => {

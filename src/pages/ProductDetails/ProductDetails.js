@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Empty } from 'antd';
 import { Redirect } from 'react-router-dom';
 
 import CreateUpdateProductForm from '../../components/CreateUpdateProductForm';
 
+import { LayoutContext } from '../../contexts';
 import { useFetch } from '../../hooks';
 import { extractProductPlace } from '../../utils/productCreateUpdate';
 import { baseURL } from '../../utils/API';
@@ -11,9 +12,13 @@ import { extractProductObj, validateProduct } from '../../utils/productCreateUpd
 import { URLS } from '../../constants';
 
 function ProductDetails({ match: { params: { productSlug } } }) {
+  const { setHeaderComponent } = useContext(LayoutContext);
   const { data: productData } = useFetch({
     url: URLS.productItemGet({slug: productSlug}),
     defaultValue: { sizes: [], colors: [] },
+    onSuccess: (data) => {
+      setHeaderComponent(<b>Edit product: <i>{data.name}</i></b>)
+    },
     onError: err => {
       setNoProductFoundAlert(true);
     }
@@ -26,6 +31,12 @@ function ProductDetails({ match: { params: { productSlug } } }) {
 
   const [noProductFoundAlert, setNoProductFoundAlert] = useState(false);
   const [productUpdated, setProductUpdated] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      setHeaderComponent(null);
+    };
+  }, []);
 
   const productObj = {
     name: productData.name,

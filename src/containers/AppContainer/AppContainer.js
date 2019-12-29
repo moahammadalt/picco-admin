@@ -12,6 +12,7 @@ import store from 'store';
 import { LayoutContext, StoreContext } from '../../contexts';
 import { handleRequestError } from '../../utils/API';
 import { baseRoutes } from '../../router';
+import { URL_BASE_NAME } from '../../constants';
 
 import '../../assets/scss/index.scss';
 
@@ -56,7 +57,7 @@ function AppContainer({ history }) {
   return (
     <Fragment>
       <Spin spinning={loading}>
-        <Router history={history} basename="/admin-dashboard">
+        <Router history={history} basename={URL_BASE_NAME}>
           <Switch>
             {baseRoutes.map(route => (
               <Route

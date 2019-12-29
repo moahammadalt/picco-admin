@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Form } from 'antd';
 import { Redirect } from 'react-router-dom';
 
 import CreateUpdateProductForm from '../../components/CreateUpdateProductForm';
 
+import { LayoutContext } from '../../contexts';
 import { useFetch } from '../../hooks';
 import { URLS } from '../../constants';
 import { extractProductObj, validateProduct } from '../../utils/productCreateUpdate';
 import '../../assets/scss/createProduct.scss';
 
 function CreateProduct() {
+  const { setHeaderComponent } = useContext(LayoutContext);
   const { doFetch: doProductCreateFetch, } = useFetch();
   const { data: productsList } = useFetch({
     url: URLS.productListGet,
@@ -27,6 +29,13 @@ function CreateProduct() {
       onSuccess: data => !!data.id && setProductCreated(true)
     });
   };
+
+  useEffect(() => {
+    setHeaderComponent(<b>Create new product</b>);
+    return () => {
+      setHeaderComponent(null);
+    };
+  }, []);
 
   return (
     <div className="main">
