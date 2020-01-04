@@ -4,7 +4,7 @@ import { Layout } from 'antd';
 const { Footer } = Layout;
 
 function FooterLayout() {
-  return (<Footer>piccoloveliero ©2019</Footer>);
+  return (<Footer>piccoloveliero ©{new Date().getFullYear()}</Footer>);
 }
 
 export default FooterLayout;
