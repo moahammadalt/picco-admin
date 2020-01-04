@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Table, Row } from 'antd';
+import { Table, Row, Button } from 'antd';
+import { CSVLink } from 'react-csv';
 
 import { LayoutContext } from '../../contexts';
 import { useFetch, usePrevious } from '../../hooks';
@@ -13,15 +14,26 @@ function Users() {
     url: URLS.usersList,
     defaultValue: [],
     onSuccess: data => {
-      const tmpUsersList = data.map(demand => {
-        demand['key'] = demand.id;
-        return demand;
+      let tmpExportedUsersData = [];
+      tmpExportedUsersData.push(['ID', 'Email', 'Date']);
+
+      const tmpUsersList = data.map(user => {
+        tmpExportedUsersData.push([
+          user.id,
+          user.email,
+          getUIDate(user.date_created, true)
+        ]);
+
+        user['key'] = user.id;
+        return user;
       });
       setUsersList(tmpUsersList);
+      setExportedUsersData(tmpExportedUsersData);
     }
   });
 
   const [usersList, setUsersList] = useState([]);
+  const [exportedUsersData, setExportedUsersData] = useState([]);
 
   const prevUsersList = usePrevious(usersList);
 
@@ -59,6 +71,11 @@ function Users() {
 
   return (
     <Row>
+      <div className="flex-r m-b-20">
+        <CSVLink data={exportedUsersData} filename="users-list">
+          <Button icon="download">Download</Button>
+        </CSVLink>
+      </div>
       <Table columns={columns} dataSource={usersList} />
     </Row>
   );

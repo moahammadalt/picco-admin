@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { List, Row, Icon, Modal, Input, Button, notification } from 'antd';
-//import { SketchPicker } from 'react-color';
+import { SketchPicker } from 'react-color';
 
 import { StoreContext, LayoutContext } from '../../contexts';
 import { useFetch, usePrevious } from '../../hooks';
@@ -21,8 +21,7 @@ function Color() {
   const [updateModalItemName, setUpdateModalItemName] = useState('');
   const [createColorModalOpen, setCreateColorModalOpen] = useState(false);
   const [newColorName, setNewColorName] = useState('');
-  //const [selectedColorHex, setSelectedColorHex] = useState('');
-  //const [colorPickerIsVisible, setColorPickerIsVisible] = useState(false);
+  const [colorsHexArr, setColorArr] = useState([]);
 
   const { doFetch: doCreateFetch } = useFetch();
   const { doFetch: doUpdateFetch } = useFetch();
@@ -39,9 +38,66 @@ function Color() {
 
   const closeCreateColorModal = () => {
     setCreateColorModalOpen(false);
-    //setColorPickerIsVisible(false);
-    //setSelectedColorHex('');
+    setColorArr([]);
     setNewColorName('');
+  };
+
+  const closeUpdateColorModal = () => {
+    setUpdateModalItem({});
+    setColorArr([]);
+  };
+
+  const openUpdateModal = colorItem => {
+    setUpdateModalItem(colorItem);
+    setUpdateModalItemName(colorItem.name);
+    if (colorItem.hex_code) {
+      const hexArr = colorItem.hex_code.split(',');
+      const tempColorsHexArr = hexArr.map(hex => {
+        const colorHexObj = {
+          hexCode: hex,
+          isVisible: false
+        };
+        return colorHexObj;
+      });
+      setColorArr(tempColorsHexArr);
+    }
+  };
+
+  const setColorHexVisibility = index => {
+    const tempColorsHexArr = [...colorsHexArr].map((colorItem, i) => {
+      if (index === i) {
+        colorItem.isVisible = !colorItem.isVisible;
+      }
+      return colorItem;
+    });
+    setColorArr(tempColorsHexArr);
+  };
+
+  const setColorHexCode = (hex, index) => {
+    if (!index && index !== 0) {
+      setColorArr([{ hexCode: null, isVisible: false }]);
+      return;
+    }
+    const tempColorsHexArr = [...colorsHexArr].map((colorItem, i) => {
+      if (index === i) {
+        colorItem.hexCode = hex;
+        colorItem.isVisible = !colorItem.isVisible;
+      }
+      return colorItem;
+    });
+    setColorArr(tempColorsHexArr);
+  };
+
+  const addColorHexCode = () => {
+    const tempColorsHexArr = [...colorsHexArr];
+    tempColorsHexArr.push({ hexCode: null, isVisible: false });
+    setColorArr(tempColorsHexArr);
+  };
+
+  const removeColorHexCode = index => {
+    const tempColorsHexArr = [...colorsHexArr];
+    tempColorsHexArr.splice(index, 1);
+    setColorArr(tempColorsHexArr);
   };
 
   const handleColorDelete = () => {
@@ -69,7 +125,8 @@ function Color() {
     doUpdateFetch({
       url: URLS.colorUpdate({ slug: updateModalItem.slug }),
       params: {
-        name: updateModalItemName
+        name: updateModalItemName,
+        hex_code: colorsHexArr.map(colorItem => colorItem.hexCode).join(',')
       },
       method: 'POST',
       showSuccessNotification: true,
@@ -95,7 +152,8 @@ function Color() {
       url: URLS.colorCreate,
       params: {
         name: newColorName,
-        slug: extractSlug(newColorName)
+        slug: extractSlug(newColorName),
+        hex_code: colorsHexArr.map(colorItem => colorItem.hexCode).join(',')
       },
       method: 'POST',
       showSuccessNotification: true,
@@ -128,15 +186,19 @@ function Color() {
             <div className="w-100">
               <div className="f-l">
                 <span className="m-r-30">{item.name}</span>
-                {/* <span style={{ color: item.hex_code }}>{item.hex_code}</span> */}
+                {item.hex_code &&
+                  item.hex_code.split(',').map((hex, index) => (
+                    <span key={index}>
+                      {' '}
+                      <span style={{ color: hex }}>{hex}</span>{' '}
+                      {item.hex_code.split(',').length - 1 !== index && `-`}
+                    </span>
+                  ))}
               </div>
               <div className="f-r">
                 <Icon
                   type="edit"
-                  onClick={() => {
-                    setUpdateModalItem(item);
-                    setUpdateModalItemName(item.name);
-                  }}
+                  onClick={() => openUpdateModal(item)}
                   className="m-l-20 m-r-30"
                   theme="twoTone"
                   twoToneColor="#1890ff"
@@ -166,7 +228,7 @@ function Color() {
         title={`Update color - ${updateModalItem.name}`}
         visible={!!updateModalItem.id}
         onOk={handleColorUpdate}
-        onCancel={() => setUpdateModalItem({})}
+        onCancel={closeUpdateColorModal}
       >
         <div className="m-b-10">Name:</div>
         <Input
@@ -175,22 +237,47 @@ function Color() {
           onPressEnter={handleColorUpdate}
           onChange={e => setUpdateModalItemName(e.target.value)}
         />
-        {/* <div className="m-b-10">Color Hex:</div>
-        <Button
-          style={{ backgroundColor: updateModalItem.hex_code }}
-          onClick={() => setColorPickerIsVisible(!colorPickerIsVisible)}
-        ></Button>
-        {colorPickerIsVisible && (
-          <div style={{ position: 'absolute' }}>
-            <SketchPicker
-              color={updateModalItem.hex_code || '#fff'}
-              onChangeComplete={({ hex }) => setUpdateModalItem({
-                ...updateModalItem,
-                hex_code: hex,
-              })}
+        <div className="m-b-10">Color Hex:</div>
+        {colorsHexArr.length === 0 && (
+          <Button onClick={setColorHexCode}>Add Colors hex code</Button>
+        )}
+        {colorsHexArr.map((colorItem, index) => (
+          <div key={index} className="m-t-10">
+            <span className="m-r-10">{index + 1}. hex</span>
+            <Button
+              style={{
+                backgroundColor: colorItem.hexCode,
+                width: colorItem.hexCode ? '100px' : '200px',
+                height: '25px'
+              }}
+              onClick={() => setColorHexVisibility(index)}
+            >
+              {!colorItem.hexCode && `Click to set the color`}
+            </Button>
+            {colorItem.isVisible && (
+              <div style={{ position: 'absolute' }}>
+                <SketchPicker
+                  color={colorItem.hexCode || '#eeeeee'}
+                  onChangeComplete={({ hex }) => setColorHexCode(hex, index)}
+                />
+              </div>
+            )}
+            <Button
+              style={{ height: '25px' }}
+              className="m-l-20"
+              icon="minus"
+              onClick={() => removeColorHexCode(index)}
             />
+            {index === colorsHexArr.length - 1 && (
+              <Button
+                style={{ height: '25px' }}
+                className="m-l-5"
+                icon="plus"
+                onClick={addColorHexCode}
+              />
+            )}
           </div>
-        )} */}
+        ))}
       </Modal>
 
       <Modal
@@ -206,19 +293,47 @@ function Color() {
           onPressEnter={handleColorCreate}
           onChange={e => setNewColorName(e.target.value)}
         />
-        {/* <div className="m-b-10">Color Hex:</div>
-        <Button
-          style={{ backgroundColor: selectedColorHex }}
-          onClick={() => setColorPickerIsVisible(!colorPickerIsVisible)}
-        ></Button>
-        {colorPickerIsVisible && (
-          <div style={{ position: 'absolute' }}>
-            <SketchPicker
-              color={selectedColorHex}
-              onChangeComplete={({ hex }) => setSelectedColorHex(hex)}
+        <div className="m-b-10">Color Hex:</div>
+        {colorsHexArr.length === 0 && (
+          <Button onClick={setColorHexCode}>Add Colors hex code</Button>
+        )}
+        {colorsHexArr.map((colorItem, index) => (
+          <div key={index} className="m-t-10">
+            <span className="m-r-10">{index + 1}. hex</span>
+            <Button
+              style={{
+                backgroundColor: colorItem.hexCode,
+                width: colorItem.hexCode ? '100px' : '200px',
+                height: '25px'
+              }}
+              onClick={() => setColorHexVisibility(index)}
+            >
+              {!colorItem.hexCode && `Click to set the color`}
+            </Button>
+            {colorItem.isVisible && (
+              <div style={{ position: 'absolute' }}>
+                <SketchPicker
+                  color={colorItem.hexCode || '#eeeeee'}
+                  onChangeComplete={({ hex }) => setColorHexCode(hex, index)}
+                />
+              </div>
+            )}
+            <Button
+              style={{ height: '25px' }}
+              className="m-l-20"
+              icon="minus"
+              onClick={() => removeColorHexCode(index)}
             />
+            {index === colorsHexArr.length - 1 && (
+              <Button
+                style={{ height: '25px' }}
+                className="m-l-5"
+                icon="plus"
+                onClick={addColorHexCode}
+              />
+            )}
           </div>
-        )} */}
+        ))}
       </Modal>
     </Row>
   );

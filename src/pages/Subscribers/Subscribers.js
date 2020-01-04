@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Table, Row } from 'antd';
+import { Table, Row, Button } from 'antd';
+import { CSVLink } from 'react-csv';
 
 import { LayoutContext } from '../../contexts';
 import { useFetch, usePrevious } from '../../hooks';
@@ -13,15 +14,26 @@ function Subscribers() {
     url: URLS.subscribersList,
     defaultValue: [],
     onSuccess: data => {
-      const tmpSubscribersList = data.map(demand => {
-        demand['key'] = demand.id;
-        return demand;
+      let tmpExportedSubscribersData = [];
+      tmpExportedSubscribersData.push(['Email', 'Date']);
+
+      const tmpSubscribersList = data.map(subscriber => {
+        tmpExportedSubscribersData.push([
+          subscriber.email,
+          getUIDate(subscriber.date_created, true)
+        ]);
+
+        subscriber['key'] = subscriber.id;
+        return subscriber;
       });
+
       setSubscribersList(tmpSubscribersList);
+      setExportedSubscribersData(tmpExportedSubscribersData);
     }
   });
 
   const [subscribersList, setSubscribersList] = useState([]);
+  const [exportedSubscribersData, setExportedSubscribersData] = useState([]);
 
   const prevSubscribersList = usePrevious(subscribersList);
 
@@ -48,12 +60,17 @@ function Subscribers() {
       title: 'Date',
       dataIndex: 'date_created',
       key: 'date_created',
-      render: date_created => getUIDate(date_created)
+      render: date_created => getUIDate(date_created, true)
     }
   ];
 
   return (
     <Row>
+      <div className="flex-r m-b-20">
+        <CSVLink data={exportedSubscribersData} filename="subscribers-list">
+          <Button icon="download">Download</Button>
+        </CSVLink>
+      </div>
       <Table columns={columns} dataSource={subscribersList} />
     </Row>
   );

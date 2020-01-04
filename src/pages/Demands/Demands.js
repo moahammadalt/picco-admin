@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Table, Input, Button, Icon, Row, Select, Popover } from 'antd';
 import Highlighter from 'react-highlight-words';
+import { CSVLink } from 'react-csv';
 
 import { LayoutContext } from '../../contexts';
 import { useFetch, usePrevious } from '../../hooks';
@@ -17,11 +18,34 @@ function Demands() {
     url: URLS.demandsList,
     defaultValue: [],
     onSuccess: data => {
+      let tmpExportedDemandsData = [];
+      tmpExportedDemandsData.push([
+        'Name',
+        'Email',
+        'Phone Number',
+        'Subject',
+        'Message',
+        'Date',
+        'Sent From',
+        'Product Link'
+      ]);
       const tmpDemandsList = data.map(demand => {
+        tmpExportedDemandsData.push([
+          demand.name,
+          demand.email,
+          demand.phone,
+          demand.subject,
+          demand.message,
+          getUIDate(demand.date_created, true),
+          demand.product_id ? 'product page' : 'contact page',
+          demand.product_id ? `${baseURL}/${demand.product_id}` : '',
+        ]);
+
         demand['key'] = demand.id;
         return demand;
       });
       setDemandsList(tmpDemandsList);
+      setExportedDemandsData(tmpExportedDemandsData);
     }
   });
 
@@ -29,6 +53,7 @@ function Demands() {
   const [searchedColumn, setSearchedColumn] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('');
   const [demandsList, setDemandsList] = useState([]);
+  const [exportedDemandsData, setExportedDemandsData] = useState([]);
 
   const prevDemandsList = usePrevious(demandsList);
 
@@ -213,6 +238,14 @@ function Demands() {
       render: date_created => getUIDate(date_created)
     },
     {
+      title: 'Sent From',
+      dataIndex: 'product_id',
+      key: 'product_source',
+      render: product_id => (
+        <span>{product_id ? 'product' : 'contact'} page</span>
+      )
+    },
+    {
       title: 'Product',
       dataIndex: 'product_id',
       key: 'product_id',
@@ -227,6 +260,11 @@ function Demands() {
 
   return (
     <Row>
+      <div className="flex-r m-b-20">
+        <CSVLink data={exportedDemandsData} filename="demands-list">
+          <Button icon="download">Download</Button>
+        </CSVLink>
+      </div>
       <Table columns={columns} dataSource={demandsList} />
     </Row>
   );
