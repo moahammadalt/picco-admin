@@ -292,6 +292,18 @@ function CreateUpdateProductForm({
         </Row>
         <Divider />
         <Row>
+          <Form.Item label="Details">
+            {getFieldDecorator('details', { initialValue: productObj.details })(
+              <RichInput
+                placeholder="Details"
+                initialValue={productObj.details}
+                onChangeHandler={setDetails}
+              />
+            )}
+          </Form.Item>
+        </Row>
+        <Divider />
+        <Row>
           <Form.Item label="Description">
             {getFieldDecorator('description', {
               initialValue: productObj.description
@@ -300,18 +312,6 @@ function CreateUpdateProductForm({
                 placeholder="Description"
                 initialValue={productObj.description}
                 onChangeHandler={setDescription}
-              />
-            )}
-          </Form.Item>
-        </Row>
-        <Divider />
-        <Row>
-          <Form.Item label="Details">
-            {getFieldDecorator('details', { initialValue: productObj.details })(
-              <RichInput
-                placeholder="Details"
-                onChangeHandler={setDetails}
-                initialValue={productObj.description}
               />
             )}
           </Form.Item>
@@ -394,10 +394,8 @@ function CreateUpdateProductForm({
             <div key={i}>
               <Form.Item className="hidden">
                 {getFieldDecorator(`sizeRefId${fieldIndex}`, {
-                  initialValue: productObj[`sizeRefId${fieldIndex}`],
-                })(
-                  <Input />
-                )}
+                  initialValue: productObj[`sizeRefId${fieldIndex}`]
+                })(<Input />)}
               </Form.Item>
               <Row gutter={[5, 0]} key={fieldIndex}>
                 <Col span={3}>
@@ -458,6 +456,56 @@ function CreateUpdateProductForm({
                   </Form.Item>
                 </Col>
                 <Col span={3}>
+                  <Form.Item label="Neck:">
+                    {getFieldDecorator(`sizeNeck${fieldIndex}`, {
+                      initialValue: productObj[`sizeNeck${fieldIndex}`]
+                    })(<Input />)}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Shoulders:">
+                    {getFieldDecorator(`sizeShoulders${fieldIndex}`, {
+                      initialValue: productObj[`sizeShoulders${fieldIndex}`]
+                    })(<Input />)}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Sleeves:">
+                    {getFieldDecorator(`sizeSleeves${fieldIndex}`, {
+                      initialValue: productObj[`sizeSleeves${fieldIndex}`]
+                    })(<Input />)}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Length:">
+                    {getFieldDecorator(`sizeLength${fieldIndex}`, {
+                      initialValue: productObj[`sizeLength${fieldIndex}`]
+                    })(<Input />)}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Total Height:">
+                    {getFieldDecorator(`sizeTotalHeight${fieldIndex}`, {
+                      initialValue: productObj[`sizeTotalHeight${fieldIndex}`]
+                    })(<Input />)}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Head Circumference:">
+                    {getFieldDecorator(`sizeHeadCircumference${fieldIndex}`, {
+                      initialValue:
+                        productObj[`sizeHeadCircumference${fieldIndex}`]
+                    })(<Input />)}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
+                  <Form.Item label="Foot Length:">
+                    {getFieldDecorator(`sizeFootLength${fieldIndex}`, {
+                      initialValue: productObj[`sizeFootLength${fieldIndex}`]
+                    })(<Input />)}
+                  </Form.Item>
+                </Col>
+                <Col span={3}>
                   {sizeFieldsCountArr.length !== 1 && (
                     <Button
                       className="m-t-43 m-r-5"
@@ -491,10 +539,8 @@ function CreateUpdateProductForm({
             <div key={i}>
               <Form.Item className="hidden">
                 {getFieldDecorator(`colorRefId${fieldIndex}`, {
-                  initialValue: productObj[`colorRefId${fieldIndex}`],
-                })(
-                  <Input />
-                )}
+                  initialValue: productObj[`colorRefId${fieldIndex}`]
+                })(<Input />)}
               </Form.Item>
               <Row gutter={[10, 0]} key={fieldIndex}>
                 <Col span={4}>

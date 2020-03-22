@@ -21,7 +21,14 @@ export const extractSizesArr = (values = {}) => {
         height: values[`sizeHeight${sizeIndex}`],
         hips: values[`sizeHips${sizeIndex}`],
         chest: values[`sizeChest${sizeIndex}`],
-        waistline: values[`sizeWaist${sizeIndex}`],
+        waist: values[`sizeWaist${sizeIndex}`],
+        neck: values[`sizeNeck${sizeIndex}`],
+        shoulders: values[`sizeShoulders${sizeIndex}`],
+        sleeves: values[`sizeSleeves${sizeIndex}`],
+        length: values[`sizeLength${sizeIndex}`],
+        total_height: values[`sizeTotalHeight${sizeIndex}`],
+        head_circumference: values[`sizeHeadCircumference${sizeIndex}`],
+        foot_length: values[`sizeFootLength${sizeIndex}`],
         size_price: values[`sizePrice${sizeIndex}`],
         amount: values[`sizeAmount${sizeIndex}`]
       };
@@ -63,17 +70,14 @@ export const extractDefaultColorId = values => {
 };
 
 export const extractProductPlace = (sortIndex, productsList) => {
-  const productsListHashObj = createHash(productsList, 'id');
-  const productsIndexesArr = productsListHashObj
-    .values()
-    .map(({ sort_index }) => sort_index);
+  const productsListHashObj = createHash(productsList, 'sort_index');
+  const productsIndexesArr = productsList.map(({ sort_index }) => sort_index);
 
   const isFirstProduct = sortIndex === Math.min(...productsIndexesArr);
   const isLastProduct = sortIndex === Math.max(...productsIndexesArr);
-  
+
   const getPlaceInBetween = () =>
     Math.min(...productsIndexesArr.filter(number => number > sortIndex));
-
   switch (true) {
     case isFirstProduct:
       return FIRST_INDEX;
@@ -82,7 +86,10 @@ export const extractProductPlace = (sortIndex, productsList) => {
       return LAST_INDEX;
 
     default:
-      return getPlaceInBetween();
+      const placeInBetween = getPlaceInBetween();
+      return placeInBetween === Infinity
+        ? LAST_INDEX
+        : productsListHashObj.data[placeInBetween].id;
   }
 };
 
@@ -145,30 +152,32 @@ export const extractProductObj = (values, productsList) => ({
   default_color_id: extractDefaultColorId(values),
   sort_index: extractProductIndex(values, productsList),
   sizes: extractSizesArr(values),
-  colors: extractColorsArr(values),
+  colors: extractColorsArr(values)
 });
 
-export const validateProduct = (paramsObj) => {
+export const validateProduct = paramsObj => {
   let errorMessage;
 
-  if(paramsObj.colors.length === 0) {
+  if (paramsObj.colors.length === 0) {
     errorMessage = 'There should be at least one color added.';
   }
-  if(paramsObj.sizes.length === 0) {
+  if (paramsObj.sizes.length === 0) {
     errorMessage = 'There should be at least one size added.';
   }
 
   const colorsIds = paramsObj.colors.map(color => color.id);
-  if(arrayHasDuplicates(colorsIds)) {
-    errorMessage = 'Colors can not be duplicated, each color should be different from the other.';
+  if (arrayHasDuplicates(colorsIds)) {
+    errorMessage =
+      'Colors can not be duplicated, each color should be different from the other.';
   }
 
   const sizesIds = paramsObj.sizes.map(size => size.id);
-  if(arrayHasDuplicates(sizesIds)) {
-    errorMessage = 'Sizes can not be duplicated, each size should be different from the other.';
+  if (arrayHasDuplicates(sizesIds)) {
+    errorMessage =
+      'Sizes can not be duplicated, each size should be different from the other.';
   }
 
-  if(!!errorMessage) {
+  if (!!errorMessage) {
     notification.warning({
       placement: 'bottomRight',
       errorMessage: 'An error occured!',
@@ -176,8 +185,7 @@ export const validateProduct = (paramsObj) => {
       description: errorMessage
     });
     return false;
-  }
-  else{
+  } else {
     return true;
   }
 };

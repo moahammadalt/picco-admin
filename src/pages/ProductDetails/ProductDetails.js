@@ -59,10 +59,16 @@ function ProductDetails({ match: { params: { productSlug } } }) {
     productObj[`sizePrice${index}`] = size.size_price;
     productObj[`sizeHeight${index}`] = size.height;
     productObj[`sizeChest${index}`] = size.chest;
-    productObj[`sizeWaist${index}`] = size.waistline;
+    productObj[`sizeWaist${index}`] = size.waist;
     productObj[`sizeHips${index}`] = size.hips;
+    productObj[`sizeNeck${index}`] = size.neck;
+    productObj[`sizeShoulders${index}`] = size.shoulders;
+    productObj[`sizeSleeves${index}`] = size.sleeves;
+    productObj[`sizeLength${index}`] = size.length;
+    productObj[`sizeTotalHeight${index}`] = size.total_height;
+    productObj[`sizeHeadCircumference${index}`] = size.head_circumference;
+    productObj[`sizeFootLength${index}`] = size.foot_length;
     productObj[`sizeRefId${index}`] = size.id;
-
   });
   productData.colors.forEach((color, index) => {
     productObj[`colorOption${index}`] = color.color_id;
